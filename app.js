@@ -1,11 +1,11 @@
-// app.js - نسخه نهایی و هماهنگ شده با پنل لایسنس و Electron
+// app.js - نسخه جامع (سازگار با وب و Electron)
 
 // =========================================================================================
 // ********************** متغیرهای سراسری (Global Variables) **********************
 // =========================================================================================
 
 let isFsActive = true; 
-let subscriptionStatus = { isActive: false, isTrialExpired: true, remainingDays: 0, expiresAt: null }; 
+let subscriptionStatus = { isActive: true, isTrialExpired: false, remainingDays: 30, expiresAt: null }; 
 let isPreviewMode = false;
 
 let doorCanvas, doorCtx;
@@ -24,6 +24,9 @@ let windowDraggingPoint = null;
 
 const DOORS_INDEX_KEY = 'doors_models';
 const WINDOWS_INDEX_KEY = 'windows_models';
+
+// چک کردن اینکه آیا در محیط Electron هستیم یا مرورگر معمولی
+const isElectron = typeof window.electronAPI !== 'undefined';
 
 // =========================================================================================
 // ********************** تابع آپلود تصویر پس‌زمینه **********************
@@ -78,13 +81,21 @@ function handleImageUpload(e, isDoor) {
 // =========================================================================================
 
 async function getDoors() {
-    const data = await window.electronAPI.executeFsOperation('getStoreValue', DOORS_INDEX_KEY);
-    try { return JSON.parse(data || '[]'); } catch (e) { return []; }
+    if (isElectron) {
+        const data = await window.electronAPI.executeFsOperation('getStoreValue', DOORS_INDEX_KEY);
+        try { return JSON.parse(data || '[]'); } catch (e) { return []; }
+    } else {
+        return JSON.parse(localStorage.getItem(DOORS_INDEX_KEY) || '[]');
+    }
 }
 
 async function getWindows() {
-    const data = await window.electronAPI.executeFsOperation('getStoreValue', WINDOWS_INDEX_KEY);
-    try { return JSON.parse(data || '[]'); } catch (e) { return []; }
+    if (isElectron) {
+        const data = await window.electronAPI.executeFsOperation('getStoreValue', WINDOWS_INDEX_KEY);
+        try { return JSON.parse(data || '[]'); } catch (e) { return []; }
+    } else {
+        return JSON.parse(localStorage.getItem(WINDOWS_INDEX_KEY) || '[]');
+    }
 }
 
 function getBase64FromImage(imgElement, type = 'jpeg') {
@@ -127,6 +138,16 @@ async function renderVTO_Python(vtoType) {
 
     if (!bgImg.src || !canvas || !modelData || !modelData.img) return;
     
+    // اگر در مرورگر بودیم و پایتون نبود، رندر ساده انجام بده
+    if (!isElectron) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(bgImg, 0, 0);
+        // رندر نمایشی مدل
+        ctx.drawImage(modelData.img, pointsArray[0].x, pointsArray[0].y, pointsArray[2].x - pointsArray[0].x, pointsArray[2].y - pointsArray[0].y);
+        return;
+    }
+
     const corners = pointsArray.map(p => getPointPositionRatio(p, canvas.width, canvas.height, bgImg.naturalWidth, bgImg.naturalHeight));
     const bgBase64 = getBase64FromImage(bgImg, 'jpeg'); 
     const modelBase64 = getBase64FromImage(modelData.img, 'png'); 
@@ -163,26 +184,26 @@ const throttledRenderVTO = throttle(renderVTO_Python, 150);
 // ********************** مدیریت خرید آنلاین و لایسنس **********************
 // =========================================================================================
 
-// هماهنگی با دکمه‌های خرید در کارت‌های قیمت جدید
 async function startPayment(planType) {
-    const machineId = await window.electronAPI.getMachineId();
-    // این URL را با آدرس سایت خود جایگزین کنید
+    let machineId = "WEB_USER";
+    if(isElectron) machineId = await window.electronAPI.getMachineId();
+    
     const checkoutUrl = `https://your-website.com/pay?mid=${machineId}&plan=${planType}`;
     
     alert("در حال انتقال به درگاه پرداخت امن زرین‌پال...");
     window.open(checkoutUrl, '_blank');
 
-    // شروع پایش وضعیت پرداخت به صورت دوره‌ای
-    const checkInterval = setInterval(async () => {
-        const status = await window.electronAPI.requestSubscriptionUpdate();
-        if (status.isActive) {
-            alert("✅ تبریک! پرداخت موفقیت‌آمیز بود و اشتراک شما فعال شد.");
-            updateSubscriptionUI(status);
-            clearInterval(checkInterval);
-        }
-    }, 10000); // هر ۱۰ ثانیه چک کن
-
-    setTimeout(() => clearInterval(checkInterval), 600000); // بعد از ۱۰ دقیقه متوقف شو
+    if (isElectron) {
+        const checkInterval = setInterval(async () => {
+            const status = await window.electronAPI.requestSubscriptionUpdate();
+            if (status.isActive) {
+                alert("✅ تبریک! پرداخت موفقیت‌آمیز بود و اشتراک شما فعال شد.");
+                updateSubscriptionUI(status);
+                clearInterval(checkInterval);
+            }
+        }, 10000);
+        setTimeout(() => clearInterval(checkInterval), 600000);
+    }
 }
 
 function updateSubscriptionUI(status) {
@@ -204,7 +225,7 @@ function updateSubscriptionUI(status) {
         }
     }
 
-    if (machineIdDisplay) {
+    if (machineIdDisplay && isElectron) {
         window.electronAPI.getMachineId().then(id => {
             machineIdDisplay.textContent = id;
         });
@@ -253,7 +274,7 @@ function renderList(items, containerId, type) {
         const div = document.createElement('div');
         div.className = 'door-model-item';
         div.style = "display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee;";
-        div.innerHTML = `<span>${item.name}</span><button class="btn-danger" data-id="${item.id}" data-filename="${item.file}">حذف</button>`;
+        div.innerHTML = `<span>${item.name}</span><button class="btn-danger" data-id="${item.id}" data-filename="${item.file || ''}">حذف</button>`;
         listDiv.appendChild(div);
     });
 }
@@ -269,19 +290,33 @@ async function handleCmsSubmit(e, vtoType) {
 
     try {
         const key = vtoType === 'door' ? DOORS_INDEX_KEY : WINDOWS_INDEX_KEY;
-        const rawData = await window.electronAPI.executeFsOperation('getStoreValue', key);
-        let models = JSON.parse(rawData || '[]');
+        let models = await (vtoType === 'door' ? getDoors() : getWindows());
 
         for (const file of files) {
             const id = Date.now() + '-' + Math.random().toString(36).substr(2, 5);
-            const fileName = `${id}-${file.name}`;
-            await window.electronAPI.executeFsOperation('saveFile', vtoType === 'door' ? 'doors' : 'windows', fileName, file.path);
-            models.push({ id, name: nameInput.value || file.name, file: fileName });
+            
+            if (isElectron) {
+                const fileName = `${id}-${file.name}`;
+                await window.electronAPI.executeFsOperation('saveFile', vtoType === 'door' ? 'doors' : 'windows', fileName, file.path);
+                models.push({ id, name: nameInput.value || file.name, file: fileName });
+            } else {
+                // در حالت وب، تصویر را به صورت Base64 ذخیره می‌کنیم
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                    models.push({ id, name: nameInput.value || file.name, imgData: ev.target.result });
+                    localStorage.setItem(key, JSON.stringify(models));
+                    vtoType === 'door' ? await loadDoorsFromLocal() : await loadWindowsFromLocal();
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
-        await window.electronAPI.executeFsOperation('setStoreValue', key, JSON.stringify(models));
+        if (isElectron) {
+            await window.electronAPI.executeFsOperation('setStoreValue', key, JSON.stringify(models));
+            vtoType === 'door' ? await loadDoorsFromLocal() : await loadWindowsFromLocal();
+        }
+
         if(statusLabel) statusLabel.textContent = "✅ با موفقیت ذخیره شد.";
-        vtoType === 'door' ? await loadDoorsFromLocal() : await loadWindowsFromLocal();
         e.target.reset();
     } catch (error) {
         if(statusLabel) statusLabel.textContent = "❌ خطا در ذخیره.";
@@ -295,10 +330,20 @@ async function handleDelete(e, type) {
     if (!confirm("آیا از حذف این مدل اطمینان دارید؟")) return;
 
     const key = type === 'door' ? DOORS_INDEX_KEY : WINDOWS_INDEX_KEY;
-    await window.electronAPI.executeFsOperation('deleteFile', type === 'door' ? 'doors' : 'windows', filename);
+    
+    if (isElectron && filename) {
+        await window.electronAPI.executeFsOperation('deleteFile', type === 'door' ? 'doors' : 'windows', filename);
+    }
+    
     let models = await (type === 'door' ? getDoors() : getWindows());
     models = models.filter(m => m.id !== id);
-    await window.electronAPI.executeFsOperation('setStoreValue', key, JSON.stringify(models));
+
+    if (isElectron) {
+        await window.electronAPI.executeFsOperation('setStoreValue', key, JSON.stringify(models));
+    } else {
+        localStorage.setItem(key, JSON.stringify(models));
+    }
+
     type === 'door' ? await loadDoorsFromLocal() : await loadWindowsFromLocal();
 }
 
@@ -380,16 +425,27 @@ async function handleModelSelect(e, isDoor) {
     const models = await (isDoor ? getDoors() : getWindows());
     const model = models.find(m => m.id === id);
     if(model) {
-        const files = await window.electronAPI.listFiles(isDoor ? 'doors' : 'windows');
-        const path = files.find(f => f.name === model.file)?.path;
-        if(path) {
+        if (isElectron) {
+            const files = await window.electronAPI.listFiles(isDoor ? 'doors' : 'windows');
+            const path = files.find(f => f.name === model.file)?.path;
+            if(path) {
+                const img = new Image();
+                img.onload = () => {
+                    if(isDoor) currentDoorModel = { ...model, img }; else currentWindowModel = { ...model, img };
+                    updatePointsVisibility();
+                    renderVTO_Python(isDoor ? 'door' : 'window');
+                };
+                img.src = path;
+            }
+        } else {
+            // حالت وب
             const img = new Image();
             img.onload = () => {
                 if(isDoor) currentDoorModel = { ...model, img }; else currentWindowModel = { ...model, img };
                 updatePointsVisibility();
                 renderVTO_Python(isDoor ? 'door' : 'window');
             };
-            img.src = path;
+            img.src = model.imgData;
         }
     }
 }
@@ -414,13 +470,11 @@ async function setupEventListeners() {
     
     setupDraggablePoints();
 
-    // هندل کردن دکمه‌های خرید در پنل قیمت
     const pricingButtons = document.querySelectorAll('#pricing .price-card button');
     pricingButtons.forEach((btn, index) => {
         btn.onclick = () => startPayment(index === 0 ? 'silver' : 'diamond');
     });
 
-    // سیستم ناوبری کامل شامل تب جدید Pricing
     const navIds = ['nav-vto-door', 'nav-vto-window', 'nav-cms-door', 'nav-cms-window', 'nav-tutorial', 'nav-pricing'];
     navIds.forEach(id => {
         const el = document.getElementById(id);
@@ -433,43 +487,45 @@ async function setupEventListeners() {
         }
     });
 
-    // آپلود تصاویر نمای ساختمان
     document.getElementById('door-image-upload').onchange = (e) => handleImageUpload(e, true);
     document.getElementById('window-image-upload').onchange = (e) => handleImageUpload(e, false);
     
-    // انتخاب مدل‌ها
     document.getElementById('door-select').onchange = (e) => handleModelSelect(e, true);
     document.getElementById('window-select').onchange = (e) => handleModelSelect(e, false);
 
-    // مدیریت پنل CMS
     document.getElementById('cms-door-form').onsubmit = (e) => handleCmsSubmit(e, 'door');
     document.getElementById('cms-window-form').onsubmit = (e) => handleCmsSubmit(e, 'window');
     document.getElementById('door-list-cms').onclick = (e) => handleDelete(e, 'door');
     document.getElementById('window-list-cms').onclick = (e) => handleDelete(e, 'window');
 
-    // لایسنس و اشتراک اولیه از طریق Electron
-    window.electronAPI.onSubscriptionStatus(updateSubscriptionUI);
-    const currentStatus = await window.electronAPI.requestSubscriptionUpdate();
-    updateSubscriptionUI(currentStatus);
+    if (isElectron) {
+        window.electronAPI.onSubscriptionStatus(updateSubscriptionUI);
+        const currentStatus = await window.electronAPI.requestSubscriptionUpdate();
+        updateSubscriptionUI(currentStatus);
+    } else {
+        updateSubscriptionUI(subscriptionStatus);
+    }
     
-    // دکمه حذف کل داده‌ها
     const clearBtn = document.getElementById('clear-all-data-btn');
     if (clearBtn) {
         clearBtn.onclick = async () => {
             if (confirm("تمامی داده‌های ذخیره شده (مدل‌ها و تنظیمات) پاک شوند؟")) {
-                await window.electronAPI.executeFsOperation('setStoreValue', 'doors_models', '[]');
-                await window.electronAPI.executeFsOperation('setStoreValue', 'windows_models', '[]');
+                if (isElectron) {
+                    await window.electronAPI.executeFsOperation('setStoreValue', DOORS_INDEX_KEY, '[]');
+                    await window.electronAPI.executeFsOperation('setStoreValue', WINDOWS_INDEX_KEY, '[]');
+                } else {
+                    localStorage.removeItem(DOORS_INDEX_KEY);
+                    localStorage.removeItem(WINDOWS_INDEX_KEY);
+                }
                 window.location.reload(); 
             }
         };
     }
 
-    // لود لیست مدل‌ها
     await loadDoorsFromLocal();
     await loadWindowsFromLocal();
     showView('vto-door'); 
 
-    // دکمه‌های دانلود
     document.getElementById('door-download-btn').onclick = () => {
         const link = document.createElement('a');
         link.download = 'frame-show-door.jpg';
