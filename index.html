@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>frame show ai - شبیه‌ساز درب و پنجره</title> 
+    <link rel="icon" href="iconvk.png">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #f59e0b;
+            --bg-color: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #d1d5db;
+            --danger-color: #dc2626;
+            --success-color: #16a34a;
+        }
+
+        body {
+            font-family: Tahoma, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            direction: rtl;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            min-height: 90vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            border-left: 1px solid var(--border-color);
+            padding-left: 15px;
+        }
+
+        .sidebar-banner {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            pointer-events: none;
+        }
+
+        .main-content {
+            flex-grow: 1; 
+            padding-right: 10px;
+            transition: all 0.4s ease;
+        }
+
+        .app-locked {
+            filter: blur(4px) grayscale(100%);
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .license-hidden {
+            display: none !important;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin: 0 0 5px 0;
+            font-size: 1.6em;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .slogan-primary { font-size: 0.95em; color: var(--primary-color); font-weight: bold; text-align: center; margin-bottom: 2px; }
+        .slogan-secondary { font-size: 0.85em; color: var(--secondary-color); font-weight: bold; text-align: center; margin-bottom: 15px; }
+
+        .auth-status {
+            font-size: 0.85em;
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: #6b7280;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .auth-active { background-color: var(--success-color) !important; }
+        .auth-expired { background-color: var(--danger-color) !important; }
+
+        .machine-id-box {
+            font-family: monospace;
+            background: rgba(255,255,255,0.2);
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            display: block;
+            margin: 8px 0;
+            word-break: break-all;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .license-actions { display: flex; gap: 5px; }
+        .btn-action { flex: 1; padding: 6px; font-size: 0.75em; border-radius: 4px; color: white; border: none; cursor: pointer; transition: 0.2s; }
+
+        nav button {
+            width: 100%;
+            margin-bottom: 8px;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: right;
+            font-size: 0.95em;
+            background-color: #f9fafb;
+            transition: all 0.2s;
+        }
+        .nav-active {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        .view { display: none; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .vto-area {
+            position: relative;
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #eee;
+        }
+
+        canvas { max-width: 100%; height: auto; display: block; }
+
+        .point {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background-color: var(--danger-color);
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: move;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+
+        .pricing-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px 0; }
+        .price-card {
+            flex: 1; min-width: 280px; max-width: 320px;
+            background: white; border: 2px solid var(--border-color);
+            border-radius: 15px; padding: 30px; text-align: center;
+            transition: 0.3s;
+        }
+        .price-card.featured { border-color: var(--secondary-color); background: #fffdfa; }
+
+        .btn-primary { background: var(--primary-color); color: white; border: none; }
+        .btn-secondary { background: var(--secondary-color); color: white; border: none; }
+        .btn-danger { background: var(--danger-color); color: white; border: none; }
+        .btn-success { background: var(--success-color); color: white; border: none; }
+
+        .pulse-animation { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+
+        .hidden { display: none !important; }
+
+        #refresh-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid white;
+            color: white;
+            border-radius: 20px;
+            padding: 4px 15px;
+            cursor: pointer;
+            font-size: 0.85em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+        #refresh-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        #refresh-icon { display: inline-block; transition: transform 0.6s ease; }
+
+        .direct-support-box {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .direct-support-box textarea {
+            width: 100%;
+            height: 70px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            font-family: inherit;
+            font-size: 0.8em;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="sidebar">
+            <img src="iconvk.png" alt="Logo" class="sidebar-banner">
+
+            <header>
+                <h1><span>🚪</span>frame show ai<span>🪟</span></h1>
+                <div class="slogan-primary">پیشرو در نوآوری</div>
+                <div class="slogan-secondary">انتخابی بهتر برای نمای ساختمان</div>
+                
+                <div id="auth-container" class="auth-status">
+                    <div id="subscription-text" style="font-weight: bold;">🔄 سیستم آماده به کار</div>
+                    
+                    <button onclick="manualRefresh()" id="refresh-btn" title="بروزرسانی وضعیت">
+                        <span id="refresh-icon">↻</span> بروزرسانی وضعیت
+                    </button>
+                    
+                    <div id="connection-status" style="font-size: 0.8em; opacity: 0.8; text-align: center;">در انتظار بررسی...</div>
+
+                    <div style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 10px;">
+                        <small>کد اختصاصی فعال‌سازی:</small>
+                        <code class="machine-id-box" id="display-machine-id">در حال محاسبه...</code>
+                        
+                        <div class="license-actions">
+                            <button class="btn-action" style="background: #4b5563;" onclick="copyID()">📋 کپی</button>
+                            <button class="btn-action" style="background: #25d366;" onclick="sendWA()">📲 واتساپ</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <nav id="main-navigation">
+                <button id="nav-pricing" class="pulse-animation" style="background-color: var(--secondary-color); color: white; font-weight: bold; border: none;">
+                    💎 تمدید اشتراک / تعرفه‌ها
+                </button>
+
+                <button id="nav-vto-door" class="nav-active">🚪 شبیه‌ساز درب</button>
+                <button id="nav-vto-window">🪟 شبیه‌ساز پنجره</button>
+                
+                <button id="nav-cms-door" class="license-control">📂 مدیریت درب‌ها</button>
+                <button id="nav-cms-window" class="license-control">📂 مدیریت پنجره‌ها</button>
+                
+                <button id="nav-tutorial" style="background: #64748b; color: white; border: none;">💡 راهنما و آموزش</button>
+            </nav>
+
+            <div class="direct-support-box">
+                <small style="display:block; margin-bottom:5px; color:var(--primary-color); font-weight:bold;">✉️ ارسال پیام به مدیریت:</small>
+                <textarea id="direct-msg-body" placeholder="گزارش پرداخت یا سوال فنی..."></textarea>
+                <button onclick="sendDirectMsg()" id="send-direct-btn" class="btn-primary" style="width:100%; margin-top:5px; padding:8px; border-radius:6px; cursor:pointer; font-size:0.85em;">ارسال سریع</button>
+                <div id="direct-msg-status" style="font-size:0.75em; text-align:center; margin-top:5px;"></div>
+            </div>
+            
+            <div class="contact-info" style="margin-top: 20px; font-size: 0.85em; text-align: center;">
+                <p style="margin-bottom: 10px; color: #666;">By: Mehdi Mousaali</p>
+                <a href="javascript:void(0)" onclick="sendWA()" style="color: var(--primary-color); text-decoration: none;">📞 پشتیبانی</a>
+            </div>
+            
+            <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8em; border-radius: 6px;">⚠️ حذف داده‌های برنامه</button>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="pricing" class="view">
+                <h2 style="text-align: center;">💎 ارتقای اشتراک حرفه‌ای</h2>
+                <div class="pricing-container">
+                    <div class="price-card">
+                        <h3>اشتراک نقره‌ای</h3>
+                        <div class="amount">۴۵۰,۰۰۰ <small style="font-size: 0.4em;">تومان</small></div>
+                        <ul style="list-style: none; padding: 0; text-align: right; margin: 20px 0;">
+                            <li>✅ اعتبار ۳ ماهه</li>
+                            <li>✅ آپلود نامحدود مدل</li>
+                            <li>✅ خروجی با کیفیت HD</li>
+                            <li>✅ حذف واترمارک</li>
+                        </ul>
+                        <button class="btn-primary" onclick="buyPlan('Silver (3 Month)')" style="padding: 12px; border-radius: 8px; cursor: pointer; width: 100%;">💳 خرید آنلاین</button>
+                    </div>
+                    <div class="price-card featured">
+                        <h3>اشتراک الماسی</h3>
+                        <div class="amount">۱,۹۰۰,۰۰۰ <small style="font-size: 0.4em;">تومان</small></div>
+                        <ul style="list-style: none; padding: 0; text-align: right; margin: 20px 0;">
+                            <li>✅ <b>دسترسی مادام‌العمر</b></li>
+                            <li>✅ نصب روی ۲ سیستم همزمان</li>
+                            <li>✅ آپدیت‌های رایگان</li>
+                            <li>✅ پشتیبانی ویژه</li>
+                        </ul>
+                        <button class="btn-secondary" onclick="buyPlan('Diamond (Lifetime)')" style="padding: 12px; border-radius: 8px; cursor: pointer; width: 100%;">💳 خرید آنلاین</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="vto-door" class="view" style="display: block;"> 
+                <h2>🚪 تعویض هوشمند درب</h2> 
+                <div class="controls">
+                    <input type="file" id="door-image-upload" accept="image/*">
+                    <select id="door-select" style="min-width: 200px;"><option value="">انتخاب مدل درب...</option></select>
+                    <button id="door-download-btn" class="btn-primary" style="padding: 10px 20px;">⬇️ دانلود خروجی</button>
+                    <span id="door-status-label" style="color: var(--success-color); font-weight: bold;"></span>
+                </div>
+                <div class="vto-area">
+                    <div class="canvas-container" style="position: relative;">
+                        <canvas id="vto-door-canvas"></canvas>
+                        <div id="door-point-0" class="point hidden"></div> 
+                        <div id="door-point-1" class="point hidden"></div> 
+                        <div id="door-point-2" class="point hidden"></div> 
+                        <div id="door-point-3" class="point hidden"></div> 
+                    </div>
+                </div>
+            </div>
+
+            <div id="vto-window" class="view">
+                <h2>🪟 تعویض هوشمند پنجره</h2>
+                <div class="controls">
+                    <input type="file" id="window-image-upload" accept="image/*">
+                    <select id="window-select" style="min-width: 200px;"><option value="">انتخاب مدل پنجره...</option></select>
+                    <button id="window-download-btn" class="btn-primary" style="padding: 10px 20px;">⬇️ دانلود خروجی</button>
+                    <span id="window-status-label"></span>
+                </div>
+                <div class="vto-area">
+                    <div class="canvas-container" style="position: relative;">
+                        <canvas id="vto-window-canvas"></canvas>
+                        <div id="window-point-0" class="point hidden"></div>
+                        <div id="window-point-1" class="point hidden"></div>
+                        <div id="window-point-2" class="point hidden"></div>
+                        <div id="window-point-3" class="point hidden"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cms-door" class="view license-control">
+                <h2>📂 کتابخانه مدل‌های درب (PNG)</h2>
+                <div class="controls">
+                    <form id="cms-door-form" style="display: flex; gap: 10px; width: 100%;">
+                        <input type="text" id="cms-door-name" placeholder="نام درب..." required style="flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                        <input type="file" id="cms-door-file" accept="image/png" required>
+                        <button type="submit" class="btn-success" style="padding: 8px 15px; border-radius: 5px; cursor: pointer;">➕ افزودن</button>
+                    </form>
+                </div>
+                <div id="door-list-cms"></div>
+            </div>
+
+            <div id="cms-window" class="view license-control">
+                <h2>📂 کتابخانه مدل‌های پنجره (PNG)</h2>
+                <div class="controls">
+                    <form id="cms-window-form" style="display: flex; gap: 10px; width: 100%;">
+                        <input type="text" id="cms-window-name" placeholder="نام پنجره..." required style="flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                        <input type="file" id="cms-window-file" accept="image/png" required>
+                        <button type="submit" class="btn-success" style="padding: 8px 15px; border-radius: 5px; cursor: pointer;">➕ افزودن</button>
+                    </form>
+                </div>
+                <div id="window-list-cms"></div>
+            </div>
+
+            <div id="tutorial" class="view">
+                <h2>💡 آموزش سریع کار با برنامه</h2>
+                <div style="background: white; padding: 25px; border-radius: 12px; line-height: 1.8; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <p><b>۱. بارگذاری تصویر:</b> عکسی از نمای ساختمان را وارد کنید.</p>
+                    <p><b>۲. انتخاب جایگزین:</b> از لیست بالا، مدل جدید را انتخاب کنید.</p>
+                    <p><b>۳. انطباق (Perspective):</b> چهار نقطه قرمز را روی گوشه‌ها قرار دهید.</p>
+                    <p><b>۴. ذخیره‌سازی:</b> دکمه دانلود نهایی را بزنید.</p>
+                </div>
+            </div>
+
+        </div> 
+    </div> 
+
+    <script>
+        // آدرس دیتابیس لایسنس شما
+        const LICENSE_SOURCE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTNxUF4LPNyWiwf5hZanYN5MxpooFNeio0ohHz8SL1YEREiVGg6uU7F8YkHnkUE0eUFr7DkB4EvYcIv/pub?gid=0&single=true&output=csv";
+        
+        async function manualRefresh() {
+            const btn = document.getElementById('refresh-btn');
+            const icon = document.getElementById('refresh-icon');
+            icon.style.transform = "rotate(360deg)";
+            btn.style.opacity = "0.7";
+            btn.disabled = true;
+            await checkLicense();
+            setTimeout(() => {
+                icon.style.transform = "rotate(0deg)";
+                btn.style.opacity = "1";
+                btn.disabled = false;
+            }, 600);
+        }
+
+        async function checkLicense() {
+            const authBox = document.getElementById('auth-container');
+            const subText = document.getElementById('subscription-text');
+            const statusTag = document.getElementById('connection-status');
+            const machineId = document.getElementById('display-machine-id').innerText.trim().toLowerCase();
+            const mainContent = document.querySelector('.main-content');
+            const cmsElements = document.querySelectorAll('.license-control');
+
+            if(machineId.includes("در حال")) return;
+            statusTag.innerText = "در حال استعلام از سرور...";
+
+            try {
+                const antiCacheParam = "t=" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+                const finalUrl = LICENSE_SOURCE_URL + (LICENSE_SOURCE_URL.includes('?') ? '&' : '?') + antiCacheParam;
+
+                const response = await fetch(finalUrl, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+                });
+                
+                if (!response.ok) throw new Error('Network error');
+                const csvData = await response.text();
+                
+                const rows = csvData.split(/\r?\n/);
+                let licenseFound = false;
+                let isLifetime = false;
+
+                for (let row of rows) {
+                    let cleanRow = row.toLowerCase();
+                    if (cleanRow.includes(machineId)) {
+                        licenseFound = true;
+                        if (cleanRow.includes("الماسی") || cleanRow.includes("almasi") || cleanRow.includes("lifetime") || cleanRow.includes("مادام")) {
+                            isLifetime = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (licenseFound) {
+                    authBox.className = 'auth-status auth-active';
+                    subText.innerText = isLifetime ? "💎 اشتراک فعال (مادام‌العمر)" : "🥈 اشتراک فعال (۳ ماهه)";
+                    statusTag.innerText = "تایید شده از سرور ابری";
+                    mainContent.classList.remove('app-locked');
+                    cmsElements.forEach(el => el.classList.remove('license-hidden'));
+                } else {
+                    authBox.className = 'auth-status auth-expired';
+                    subText.innerText = "❌ نیاز به فعال‌سازی";
+                    statusTag.innerText = "کد شما در لیست نیست";
+                    mainContent.classList.add('app-locked');
+                    cmsElements.forEach(el => el.classList.add('license-hidden'));
+                }
+            } catch (error) {
+                statusTag.innerText = "⚠️ خطای شبکه (دوباره تلاش کنید)";
+                console.warn("License check failed:", error);
+            }
+        }
+
+        async function sendDirectMsg() {
+            const msgInput = document.getElementById('direct-msg-body');
+            const btn = document.getElementById('send-direct-btn');
+            const status = document.getElementById('direct-msg-status');
+            const machineId = document.getElementById('display-machine-id').innerText.trim();
+
+            if(!msgInput.value.trim()) { alert("لطفا پیام را بنویسید"); return; }
+
+            const formActionURL = "https://docs.google.com/forms/d/e/1FAIpQLScyY5N3G2Xm0H6zX-fXfXfXfXfXfXfXf/formResponse";
+            
+            btn.disabled = true;
+            status.innerText = "⌛ در حال ارسال...";
+
+            const formData = new FormData();
+            formData.append("entry.123456789", machineId); 
+            formData.append("entry.987654321", msgInput.value); 
+
+            try {
+                await fetch(formActionURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData
+                });
+                status.style.color = "green";
+                status.innerText = "✅ با موفقیت ارسال شد";
+                msgInput.value = "";
+            } catch(e) {
+                status.style.color = "red";
+                status.innerText = "❌ خطا در ارسال";
+            } finally {
+                setTimeout(() => { btn.disabled = false; }, 2000);
+            }
+        }
+
+        function buyPlan(planName) {
+            const id = document.getElementById('display-machine-id').innerText.trim();
+            const phoneNumber = "989034564000";
+            const message = `سلام، درخواست خرید اشتراک ${planName} را دارم.\nکد دستگاه من:\n${id}`;
+            const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        function copyID() {
+            const id = document.getElementById('display-machine-id').innerText;
+            navigator.clipboard.writeText(id).then(() => alert("کد اختصاصی کپی شد."));
+        }
+
+        function sendWA() {
+            const id = document.getElementById('display-machine-id').innerText.trim();
+            const phoneNumber = "989034564000";
+            const message = `سلام، درخواست فعال‌سازی لایسنس برای کد زیر را دارم:\n${id}`;
+            const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // سیستم ناوبری (Navigation)
+        const navButtons = document.querySelectorAll('#main-navigation button');
+        const views = document.querySelectorAll('.view');
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.id.replace('nav-', '');
+                
+                // مدیریت ظاهر دکمه‌های ناوبری
+                if(btn.id !== 'nav-tutorial' && btn.id !== 'nav-pricing') {
+                    navButtons.forEach(b => b.classList.remove('nav-active'));
+                    btn.classList.add('nav-active');
+                }
+                
+                // نمایش بخش مربوطه
+                views.forEach(v => {
+                    v.style.display = (v.id === targetId) ? 'block' : 'none';
+                });
+            });
+        });
+
+        // تنظیمات اولیه هنگام لود برنامه
+        window.addEventListener('load', () => {
+            let savedId = localStorage.getItem('machine_id');
+            if(!savedId) {
+                savedId = "FS-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem('machine_id', savedId);
+            }
+            document.getElementById('display-machine-id').innerText = savedId;
+            checkLicense();
+            setInterval(checkLicense, 60000); 
+        });
+
+        // غیرفعال کردن راست‌کلیک
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+    </script>
+    <script src="./app.js"></script> 
+</body>
+</html>
