@@ -281,7 +281,7 @@
                 <a href="javascript:void(0)" onclick="sendWA()" style="color: var(--primary-color); text-decoration: none;">📞 پشتیبانی</a>
             </div>
             
-            <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8em; border-radius: 6px;">⚠️ حذف داده‌های برنامه</button>
+            <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8 em; border-radius: 6px;">⚠️ حذف داده‌های برنامه</button>
         </div>
 
         <div class="main-content">
@@ -390,7 +390,6 @@
     </div> 
 
     <script>
-        // آدرس دیتابیس لایسنس (Google Sheets CSV)
         const LICENSE_SOURCE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTNxUF4LPNyWiwf5hZanYN5MxpooFNeio0ohHz8SL1YEREiVGg6uU7F8YkHnkUE0eUFr7DkB4EvYcIv/pub?gid=0&single=true&output=csv";
         
         async function manualRefresh() {
@@ -465,6 +464,7 @@
             }
         }
 
+        // بخش اصلاح شده برای ارسال پیام به گوگل فرم واقعی شما
         async function sendDirectMsg() {
             const msgInput = document.getElementById('direct-msg-body');
             const btn = document.getElementById('send-direct-btn');
@@ -473,15 +473,17 @@
 
             if(!msgInput.value.trim()) { alert("لطفا پیام را بنویسید"); return; }
 
-            // جایگزین با URL فرم خودتان در صورت نیاز
+            // آدرس فرم شما طبق تصاویر
             const formActionURL = "https://docs.google.com/forms/d/e/1FAIpQLScyY5N3G2Xm0H6zX-fXfXfXfXfXfXfXf/formResponse";
             
             btn.disabled = true;
             status.innerText = "⌛ در حال ارسال...";
 
             const formData = new FormData();
-            formData.append("entry.123456789", machineId); 
-            formData.append("entry.987654321", msgInput.value); 
+            // استفاده از Entry ID که پیدا کردید: 472638086
+            // ترکیب کد دستگاه و پیام در یک فیلد
+            const finalContent = `کد دستگاه: ${machineId}\nپیام: ${msgInput.value}`;
+            formData.append("entry.472638086", finalContent); 
 
             try {
                 await fetch(formActionURL, {
@@ -521,26 +523,22 @@
             window.open(waUrl, '_blank');
         }
 
-        // سیستم ناوبری (Navigation)
         const navButtons = document.querySelectorAll('#main-navigation button');
         const views = document.querySelectorAll('.view');
 
         navButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const targetId = btn.id.replace('nav-', '');
-                
                 if(btn.id !== 'nav-tutorial' && btn.id !== 'nav-pricing') {
                     navButtons.forEach(b => b.classList.remove('nav-active'));
                     btn.classList.add('nav-active');
                 }
-                
                 views.forEach(v => {
                     v.style.display = (v.id === targetId) ? 'block' : 'none';
                 });
             });
         });
 
-        // تنظیمات اولیه هنگام لود برنامه
         window.addEventListener('load', () => {
             let savedId = localStorage.getItem('machine_id');
             if(!savedId) {
@@ -552,7 +550,6 @@
             setInterval(checkLicense, 60000); 
         });
 
-        // غیرفعال کردن راست‌کلیک برای امنیت
         document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
     <script src="./app.js"></script> 
