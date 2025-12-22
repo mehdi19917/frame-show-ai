@@ -464,32 +464,33 @@
             }
         }
 
-        // بخش اصلاح شده برای ارسال پیام به گوگل فرم واقعی شما
+        // --- بخش اصلاح شده برای ارسال پیام ---
         async function sendDirectMsg() {
             const msgInput = document.getElementById('direct-msg-body');
             const btn = document.getElementById('send-direct-btn');
             const status = document.getElementById('direct-msg-status');
             const machineId = document.getElementById('display-machine-id').innerText.trim();
 
-            if(!msgInput.value.trim()) { alert("لطفا پیام را بنویسید"); return; }
+            if(!msgInput.value.trim()) { alert("لطفاً پیام را بنویسید"); return; }
 
-            // آدرس فرم شما طبق تصاویر
+            // آدرس صحیح برای ثبت پاسخ در گوگل فرم
             const formActionURL = "https://docs.google.com/forms/d/e/1FAIpQLScyY5N3G2Xm0H6zX-fXfXfXfXfXfXfXf/formResponse";
             
             btn.disabled = true;
+            status.style.color = "blue";
             status.innerText = "⌛ در حال ارسال...";
 
-            const formData = new FormData();
-            // استفاده از Entry ID که پیدا کردید: 472638086
-            // ترکیب کد دستگاه و پیام در یک فیلد
-            const finalContent = `کد دستگاه: ${machineId}\nپیام: ${msgInput.value}`;
+            const formData = new URLSearchParams();
+            // استفاده از Entry ID فیلد Machine ID شما
+            const finalContent = `ID: ${machineId} | Msg: ${msgInput.value}`;
             formData.append("entry.472638086", finalContent); 
 
             try {
                 await fetch(formActionURL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    body: formData
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
                 });
                 status.style.color = "green";
                 status.innerText = "✅ با موفقیت ارسال شد";
@@ -498,7 +499,10 @@
                 status.style.color = "red";
                 status.innerText = "❌ خطا در ارسال";
             } finally {
-                setTimeout(() => { btn.disabled = false; }, 2000);
+                setTimeout(() => { 
+                    btn.disabled = false;
+                    status.innerText = "";
+                }, 4000);
             }
         }
 
