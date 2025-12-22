@@ -94,6 +94,7 @@
             border-radius: 8px;
             text-align: center;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
         }
         .auth-active { background-color: var(--success-color) !important; }
         .auth-expired { background-color: var(--danger-color) !important; }
@@ -281,7 +282,7 @@
                 <a href="javascript:void(0)" onclick="sendWA()" style="color: var(--primary-color); text-decoration: none;">📞 پشتیبانی</a>
             </div>
             
-            <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8 em; border-radius: 6px;">⚠️ حذف داده‌های برنامه</button>
+            <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8em; border-radius: 6px;">⚠️ حذف داده‌های برنامه</button>
         </div>
 
         <div class="main-content">
@@ -410,7 +411,8 @@
             const authBox = document.getElementById('auth-container');
             const subText = document.getElementById('subscription-text');
             const statusTag = document.getElementById('connection-status');
-            const machineId = document.getElementById('display-machine-id').innerText.trim().toLowerCase();
+            const machineIdElement = document.getElementById('display-machine-id');
+            const machineId = machineIdElement.innerText.trim().toLowerCase();
             const mainContent = document.querySelector('.main-content');
             const cmsElements = document.querySelectorAll('.license-control');
 
@@ -446,13 +448,15 @@
                 }
 
                 if (licenseFound) {
-                    authBox.className = 'auth-status auth-active';
+                    authBox.classList.remove('auth-expired');
+                    authBox.classList.add('auth-active');
                     subText.innerText = isLifetime ? "💎 اشتراک فعال (مادام‌العمر)" : "🥈 اشتراک فعال (۳ ماهه)";
                     statusTag.innerText = "تایید شده از سرور ابری";
                     mainContent.classList.remove('app-locked');
                     cmsElements.forEach(el => el.classList.remove('license-hidden'));
                 } else {
-                    authBox.className = 'auth-status auth-expired';
+                    authBox.classList.remove('auth-active');
+                    authBox.classList.add('auth-expired');
                     subText.innerText = "❌ نیاز به فعال‌سازی";
                     statusTag.innerText = "کد شما در لیست نیست";
                     mainContent.classList.add('app-locked');
@@ -464,7 +468,6 @@
             }
         }
 
-        // --- بخش اصلاح شده برای ارسال پیام ---
         async function sendDirectMsg() {
             const msgInput = document.getElementById('direct-msg-body');
             const btn = document.getElementById('send-direct-btn');
@@ -473,7 +476,6 @@
 
             if(!msgInput.value.trim()) { alert("لطفاً پیام را بنویسید"); return; }
 
-            // آدرس صحیح برای ثبت پاسخ در گوگل فرم
             const formActionURL = "https://docs.google.com/forms/d/e/1FAIpQLScyY5N3G2Xm0H6zX-fXfXfXfXfXfXfXf/formResponse";
             
             btn.disabled = true;
@@ -481,7 +483,6 @@
             status.innerText = "⌛ در حال ارسال...";
 
             const formData = new URLSearchParams();
-            // استفاده از Entry ID فیلد Machine ID شما
             const finalContent = `ID: ${machineId} | Msg: ${msgInput.value}`;
             formData.append("entry.472638086", finalContent); 
 
@@ -533,10 +534,17 @@
         navButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const targetId = btn.id.replace('nav-', '');
+                
+                // بروزرسانی وضعیت دکمه‌های ناوبری
                 if(btn.id !== 'nav-tutorial' && btn.id !== 'nav-pricing') {
                     navButtons.forEach(b => b.classList.remove('nav-active'));
                     btn.classList.add('nav-active');
+                } else {
+                    // برای دکمه‌های راهنما و پکیج‌ها، اکتیو قبلی را پاک نمی‌کنیم مگر اینکه بخواهید
+                    // navButtons.forEach(b => b.classList.remove('nav-active'));
+                    // btn.classList.add('nav-active');
                 }
+
                 views.forEach(v => {
                     v.style.display = (v.id === targetId) ? 'block' : 'none';
                 });
@@ -552,6 +560,13 @@
             document.getElementById('display-machine-id').innerText = savedId;
             checkLicense();
             setInterval(checkLicense, 60000); 
+        });
+
+        document.getElementById('clear-all-data-btn').addEventListener('click', () => {
+            if(confirm('آیا از حذف تمام داده‌های ذخیره شده و مدل‌های آپلود شده اطمینان دارید؟')) {
+                localStorage.clear();
+                location.reload();
+            }
         });
 
         document.addEventListener('contextmenu', (e) => e.preventDefault());
