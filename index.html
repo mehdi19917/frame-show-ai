@@ -667,52 +667,44 @@ async function sendDirectMsg() {
     const status = document.getElementById('direct-msg-status');
     const machineId = document.getElementById('display-machine-id').innerText.trim();
 
-    // لینک اختصاصی شما که در مرحله قبل ساختید
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwphJ-h0QQr5zh1EVzxVkbonOU24Gi9kZh9rrhePcUidgGpkcPfcGc6QVxyjCx7JyI/exec";
+    // لینک دقیق وب‌اپلیکیشن شما
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyjy2uRW3-TeYEt5Fl5x06X3CMONAjVV18eQLzKTeCy8ng6Q-9h9RXVKOYeJIr8IU-3/exec";
 
     if (!msgInput.value.trim()) {
-        alert("لطفاً پیام خود را وارد کنید.");
+        alert("لطفاً متن پیام را وارد کنید.");
         return;
     }
 
-    // تغییر ظاهر دکمه هنگام ارسال
     btn.disabled = true;
-    status.style.color = "blue";
-    status.innerText = "⌛ در حال ارسال به شیت...";
+    status.style.color = "#2563eb";
+    status.innerText = "⌛ در حال ارسال...";
+
+    // ایجاد داده‌ها برای ارسال به صورت پارامتر
+    const params = new URLSearchParams();
+    params.append('machineId', machineId);
+    params.append('message', msgInput.value);
 
     try {
-        // ارسال داده‌ها به صورت JSON
-        await fetch(scriptURL, {
+        await fetch(scriptURL + "?" + params.toString(), {
             method: 'POST',
-            mode: 'no-cors', // برای جلوگیری از محدودیت‌های مرورگر
-            cache: 'no-cache',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "machineId": machineId,
-                "message": msgInput.value
-            })
+            mode: 'no-cors' 
         });
 
-        // نمایش پیام موفقیت
+        // نمایش موفقیت
         status.style.color = "green";
-        status.innerText = "✅ پیام با موفقیت در گوگل شیت ثبت شد.";
-        msgInput.value = ""; // پاک کردن فیلد متن
+        status.innerText = "✅ پیام شما در صف بررسی قرار گرفت.";
+        msgInput.value = ""; 
 
     } catch (error) {
-        console.error('Error:', error);
         status.style.color = "red";
-        status.innerText = "❌ خطا در ارسال پیام.";
+        status.innerText = "❌ خطا در برقراری ارتباط با سرور";
     } finally {
-        // فعال کردن مجدد دکمه بعد از چند ثانیه
         setTimeout(() => {
             btn.disabled = false;
             status.innerText = "";
         }, 5000);
     }
-}
-        getEl('clear-all-data-btn').onclick = () => {
+}       getEl('clear-all-data-btn').onclick = () => {
             if(confirm('تمام تنظیمات و مدل‌ها حذف شوند؟')) { localStorage.clear(); location.reload(); }
         };
 
