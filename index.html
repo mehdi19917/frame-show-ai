@@ -399,53 +399,45 @@
                 btn.disabled = false;
             }, 600);
         }
+async function checkLicense() {
+    const authBox = getEl('auth-container');
+    const subText = getEl('subscription-text');
+    const statusTag = getEl('connection-status');
+    const machineId = getEl('display-machine-id').innerText.trim();
+    const mainContent = document.querySelector('.main-content');
+    const cmsElements = document.querySelectorAll('.license-control');
 
-        async function checkLicense() {
-            const authBox = getEl('auth-container');
-            const subText = getEl('subscription-text');
-            const statusTag = getEl('connection-status');
-            const machineId = getEl('display-machine-id').innerText.trim();
-            const mainContent = document.querySelector('.main-content');
-            const cmsElements = document.querySelectorAll('.license-control');
+    if(machineId.includes("در حال")) return;
+    statusTag.innerText = "در حال استعلام وضعیت...";
 
-            if(machineId.includes("در حال")) return;
-            statusTag.innerText = "در حال استعلام وضعیت...";
+    // ایجاد یک نام موقت برای تابع بازگشتی
+    const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+    
+    window[callbackName] = function(result) {
+        delete window[callbackName];
+        document.body.removeChild(script);
 
-            try {
-                const response = await fetch(`${LICENSE_API}?machineId=${machineId}`);
-                const result = await response.text();
+        authBox.classList.remove('auth-active', 'auth-expired');
 
-                authBox.classList.remove('auth-active', 'auth-expired');
-
-                if (result === "LIFETIME") {
-                    authBox.classList.add('auth-active');
-                    subText.innerText = "💎 اشتراک فعال (مادام‌العمر)";
-                    statusTag.innerText = "دسترسی نامحدود تایید شد";
-                    mainContent.classList.remove('app-locked');
-                    cmsElements.forEach(el => el.classList.remove('license-hidden'));
-                } else if (result === "ACTIVE_3_MONTHS") {
-                    authBox.classList.add('auth-active');
-                    subText.innerText = "🥈 اشتراک فعال (۳ ماهه)";
-                    statusTag.innerText = "دارای اعتبار زمانی";
-                    mainContent.classList.remove('app-locked');
-                    cmsElements.forEach(el => el.classList.remove('license-hidden'));
-                } else if (result === "EXPIRED") {
-                    authBox.classList.add('auth-expired');
-                    subText.innerText = "❌ اشتراک منقضی شده است";
-                    statusTag.innerText = "لطفاً تمدید کنید";
-                    mainContent.classList.add('app-locked');
-                    cmsElements.forEach(el => el.classList.add('license-hidden'));
-                } else {
-                    authBox.classList.add('auth-expired');
-                    subText.innerText = "⚠️ نیاز به فعال‌سازی";
-                    statusTag.innerText = "کد شما در لیست نیست";
-                    mainContent.classList.add('app-locked');
-                    cmsElements.forEach(el => el.classList.add('license-hidden'));
-                }
-            } catch (e) {
-                statusTag.innerText = "⚠️ خطای اتصال به سرور لایسنس";
-            }
+        if (result === "LIFETIME") {
+            authBox.classList.add('auth-active');
+            subText.innerText = "💎 اشتراک فعال (مادام‌العمر)";
+            statusTag.innerText = "دسترسی نامحدود تایید شد";
+            mainContent.classList.remove('app-locked');
+            cmsElements.forEach(el => el.classList.remove('license-hidden'));
+        } else {
+            authBox.classList.add('auth-expired');
+            subText.innerText = "⚠️ نیاز به فعال‌سازی";
+            statusTag.innerText = "کد شما در لیست نیست";
+            mainContent.classList.add('app-locked');
+            cmsElements.forEach(el => el.classList.add('license-hidden'));
         }
+    };
+
+    const script = document.createElement('script');
+    script.src = `${LICENSE_API}?machineId=${encodeURIComponent(machineId)}&callback=${callbackName}`;
+    document.body.appendChild(script);
+}
 
         function loadCMS() {
             ['door', 'window'].forEach(type => {
