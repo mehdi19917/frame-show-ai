@@ -390,7 +390,7 @@
     </div> 
 
     <script>
-        // آدرس دیتابیس لایسنس شما
+        // آدرس دیتابیس لایسنس (Google Sheets CSV)
         const LICENSE_SOURCE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTNxUF4LPNyWiwf5hZanYN5MxpooFNeio0ohHz8SL1YEREiVGg6uU7F8YkHnkUE0eUFr7DkB4EvYcIv/pub?gid=0&single=true&output=csv";
         
         async function manualRefresh() {
@@ -473,6 +473,7 @@
 
             if(!msgInput.value.trim()) { alert("لطفا پیام را بنویسید"); return; }
 
+            // جایگزین با URL فرم خودتان در صورت نیاز
             const formActionURL = "https://docs.google.com/forms/d/e/1FAIpQLScyY5N3G2Xm0H6zX-fXfXfXfXfXfXfXf/formResponse";
             
             btn.disabled = true;
@@ -528,13 +529,11 @@
             btn.addEventListener('click', () => {
                 const targetId = btn.id.replace('nav-', '');
                 
-                // مدیریت ظاهر دکمه‌های ناوبری
                 if(btn.id !== 'nav-tutorial' && btn.id !== 'nav-pricing') {
                     navButtons.forEach(b => b.classList.remove('nav-active'));
                     btn.classList.add('nav-active');
                 }
                 
-                // نمایش بخش مربوطه
                 views.forEach(v => {
                     v.style.display = (v.id === targetId) ? 'block' : 'none';
                 });
@@ -553,7 +552,7 @@
             setInterval(checkLicense, 60000); 
         });
 
-        // غیرفعال کردن راست‌کلیک
+        // غیرفعال کردن راست‌کلیک برای امنیت
         document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
     <script src="./app.js"></script> 
