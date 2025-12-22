@@ -246,8 +246,7 @@
                         <small>کد اختصاصی فعال‌سازی:</small>
                         <code class="machine-id-box" id="display-machine-id">در حال محاسبه...</code>
                         <div class="license-actions">
-                            <button class="btn-action" style="background: #4b5563;" onclick="copyID()">📋 کپی</button>
-                            <button class="btn-action" style="background: #25d366;" onclick="sendWA()">📲 واتساپ</button>
+                            <button class="btn-action" style="background: #4b5563; width: 100%;" onclick="copyID()">📋 کپی کد لایسنس</button>
                         </div>
                     </div>
                 </div>
@@ -255,7 +254,7 @@
 
             <nav id="main-navigation">
                 <button id="nav-pricing" class="pulse-animation" style="background-color: var(--secondary-color); color: white; font-weight: bold; border: none;">
-                    💎 تمدید اشتراک / تعرفه‌ها
+                    💎 تعرفه‌های اشتراک
                 </button>
                 <button id="nav-vto-door" class="nav-active">🚪 شبیه‌ساز درب</button>
                 <button id="nav-vto-window">🪟 شبیه‌ساز پنجره</button>
@@ -273,7 +272,6 @@
             
             <div class="contact-info" style="margin-top: 20px; font-size: 0.85em; text-align: center;">
                 <p style="margin-bottom: 10px; color: #666;">By: Mehdi Mousaali</p>
-                <a href="javascript:void(0)" onclick="sendWA()" style="color: var(--primary-color); text-decoration: none;">📞 پشتیبانی</a>
             </div>
             
             <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8em; border-radius: 6px;">⚠️ حذف داده‌های برنامه</button>
@@ -293,7 +291,7 @@
                             <li>✅ خروجی با کیفیت HD</li>
                             <li>✅ حذف واترمارک</li>
                         </ul>
-                        <button class="btn-primary" onclick="buyPlan('Silver (3 Month)')" style="padding: 12px; border-radius: 8px; width: 100%;">💳 خرید آنلاین</button>
+                        <div style="font-size: 0.8em; color: #666;">جهت خرید، کد اختصاصی خود را از پنل سمت راست کپی کرده و در پیام به مدیریت ارسال کنید.</div>
                     </div>
                     <div class="price-card featured">
                         <h3>اشتراک الماسی</h3>
@@ -304,7 +302,7 @@
                             <li>✅ آپدیت‌های رایگان</li>
                             <li>✅ پشتیبانی ویژه</li>
                         </ul>
-                        <button class="btn-secondary" onclick="buyPlan('Diamond (Lifetime)')" style="padding: 12px; border-radius: 8px; width: 100%;">💳 خرید آنلاین</button>
+                        <div style="font-size: 0.8em; color: #666;">محبوب‌ترین پلن برای حرفه‌ای‌ها</div>
                     </div>
                 </div>
             </div>
@@ -379,16 +377,13 @@
     </div> 
 
     <script>
-        // --- تنظیمات و متغیرهای لایسنس ---
-        const LICENSE_SOURCE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTNxUF4LPNyWiwf5hZanYN5MxpooFNeio0ohHz8SL1YEREiVGg6uU7F8YkHnkUE0eUFr7DkB4EvYcIv/pub?gid=0&single=true&output=csv";
+        const LICENSE_API = "https://script.google.com/macros/s/AKfycbziQvDu9TQwQWlCNblD0euAgGNFWH5RSFarQMw6uYRyMawhMnUMA6D7XZ88MtZtQEKi/exec";
         
-        // --- هسته گرافیکی و منطق برنامه ---
         const state = {
             door: { bg: null, overlay: null, points: [], activePoint: null },
             window: { bg: null, overlay: null, points: [], activePoint: null }
         };
 
-        // --- توابع کمکی ---
         const getEl = id => document.getElementById(id);
 
         async function manualRefresh() {
@@ -409,46 +404,49 @@
             const authBox = getEl('auth-container');
             const subText = getEl('subscription-text');
             const statusTag = getEl('connection-status');
-            const machineId = getEl('display-machine-id').innerText.trim().toLowerCase();
+            const machineId = getEl('display-machine-id').innerText.trim();
             const mainContent = document.querySelector('.main-content');
             const cmsElements = document.querySelectorAll('.license-control');
 
             if(machineId.includes("در حال")) return;
-            statusTag.innerText = "در حال استعلام...";
+            statusTag.innerText = "در حال استعلام وضعیت...";
 
             try {
-                const response = await fetch(LICENSE_SOURCE_URL + "?t=" + Date.now(), { cache: 'no-store' });
-                const csvData = await response.text();
-                const rows = csvData.split(/\r?\n/);
-                let found = false, lifetime = false;
+                const response = await fetch(`${LICENSE_API}?machineId=${machineId}`);
+                const result = await response.text();
 
-                for (let row of rows) {
-                    if (row.toLowerCase().includes(machineId)) {
-                        found = true;
-                        if (/الماسی|almasi|lifetime|مادام/.test(row.toLowerCase())) lifetime = true;
-                        break;
-                    }
-                }
+                authBox.classList.remove('auth-active', 'auth-expired');
 
-                if (found) {
-                    authBox.className = 'auth-status auth-active';
-                    subText.innerText = lifetime ? "💎 اشتراک فعال (مادام‌العمر)" : "🥈 اشتراک فعال (۳ ماهه)";
-                    statusTag.innerText = "تایید شده از سرور ابری";
+                if (result === "LIFETIME") {
+                    authBox.classList.add('auth-active');
+                    subText.innerText = "💎 اشتراک فعال (مادام‌العمر)";
+                    statusTag.innerText = "دسترسی نامحدود تایید شد";
                     mainContent.classList.remove('app-locked');
                     cmsElements.forEach(el => el.classList.remove('license-hidden'));
+                } else if (result === "ACTIVE_3_MONTHS") {
+                    authBox.classList.add('auth-active');
+                    subText.innerText = "🥈 اشتراک فعال (۳ ماهه)";
+                    statusTag.innerText = "دارای اعتبار زمانی";
+                    mainContent.classList.remove('app-locked');
+                    cmsElements.forEach(el => el.classList.remove('license-hidden'));
+                } else if (result === "EXPIRED") {
+                    authBox.classList.add('auth-expired');
+                    subText.innerText = "❌ اشتراک منقضی شده است";
+                    statusTag.innerText = "لطفاً تمدید کنید";
+                    mainContent.classList.add('app-locked');
+                    cmsElements.forEach(el => el.classList.add('license-hidden'));
                 } else {
-                    authBox.className = 'auth-status auth-expired';
-                    subText.innerText = "❌ نیاز به فعال‌سازی";
+                    authBox.classList.add('auth-expired');
+                    subText.innerText = "⚠️ نیاز به فعال‌سازی";
                     statusTag.innerText = "کد شما در لیست نیست";
                     mainContent.classList.add('app-locked');
                     cmsElements.forEach(el => el.classList.add('license-hidden'));
                 }
             } catch (e) {
-                statusTag.innerText = "⚠️ خطای اتصال به سرور";
+                statusTag.innerText = "⚠️ خطای اتصال به سرور لایسنس";
             }
         }
 
-        // --- مدیریت داده‌ها (Local Storage CMS) ---
         function loadCMS() {
             ['door', 'window'].forEach(type => {
                 const list = JSON.parse(localStorage.getItem(`cms_${type}`) || '[]');
@@ -500,10 +498,8 @@
             };
         });
 
-        // --- منطق بصری (Canvas & Perspective) ---
         function initVTO(type) {
             const canvas = getEl(`vto-${type}-canvas`);
-            const ctx = canvas.getContext('2d');
             const upload = getEl(`${type}-image-upload`);
             const select = getEl(`${type}-select`);
 
@@ -515,7 +511,6 @@
                         state[type].bg = img;
                         canvas.width = img.width;
                         canvas.height = img.height;
-                        // تنظیم نقاط پیش‌فرض در مرکز
                         const w = img.width, h = img.height;
                         state[type].points = [
                             {x: w*0.3, y: h*0.3}, {x: w*0.7, y: h*0.3},
@@ -536,7 +531,6 @@
                 img.src = e.target.value;
             };
 
-            // هندل کردن درگ نقاط
             const container = getEl(`${type}-vto-area`);
             container.onmousedown = (e) => {
                 if(e.target.classList.contains('point')) {
@@ -576,19 +570,14 @@
             const canvas = getEl(`vto-${type}-canvas`);
             const ctx = canvas.getContext('2d');
             if(!state[type].bg) return;
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(state[type].bg, 0, 0);
-
             if(state[type].overlay) {
                 drawPerspective(ctx, state[type].overlay, state[type].points);
             }
         }
 
-        // تابع اصلی برای رسم پرسپکتیو (ساده شده برای عملکرد سریع)
         function drawPerspective(ctx, img, pts) {
-            // این یک پیاده‌سازی ساده برای پیش‌نمایش است.
-            // در پروژه‌های پیچیده از OpenCV.js یا Transform Matrix استفاده می‌شود.
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(pts[0].x, pts[0].y);
@@ -597,18 +586,14 @@
             ctx.lineTo(pts[3].x, pts[3].y);
             ctx.closePath();
             ctx.clip();
-            
-            // تخمین ابعاد برای رسم
             const minX = Math.min(...pts.map(p => p.x));
             const minY = Math.min(...pts.map(p => p.y));
             const maxX = Math.max(...pts.map(p => p.x));
             const maxY = Math.max(...pts.map(p => p.y));
-            
             ctx.drawImage(img, minX, minY, maxX - minX, maxY - minY);
             ctx.restore();
         }
 
-        // --- رویدادهای عمومی ---
         window.addEventListener('load', () => {
             let savedId = localStorage.getItem('machine_id');
             if(!savedId) {
@@ -624,7 +609,6 @@
             setInterval(checkLicense, 300000); 
         });
 
-        // دانلود خروجی
         ['door', 'window'].forEach(type => {
             getEl(`${type}-download-btn`).onclick = () => {
                 const link = document.createElement('a');
@@ -634,7 +618,6 @@
             };
         });
 
-        // مدیریت منو
         const navButtons = document.querySelectorAll('#main-navigation button');
         const views = document.querySelectorAll('.view');
         navButtons.forEach(btn => {
@@ -649,62 +632,49 @@
         });
 
         function copyID() {
-            navigator.clipboard.writeText(getEl('display-machine-id').innerText).then(() => alert("کپی شد"));
+            navigator.clipboard.writeText(getEl('display-machine-id').innerText).then(() => alert("کد لایسنس کپی شد."));
         }
 
-        function sendWA() {
-            const id = getEl('display-machine-id').innerText;
-            window.open(`https://api.whatsapp.com/send?phone=989034564000&text=سلام، لایسنس کد: ${id}`, '_blank');
-        }
+        async function sendDirectMsg() {
+            const msgInput = document.getElementById('direct-msg-body');
+            const btn = document.getElementById('send-direct-btn');
+            const status = document.getElementById('direct-msg-status');
+            const machineId = document.getElementById('display-machine-id').innerText.trim();
+            const scriptURL = "https://script.google.com/macros/s/AKfycbyjy2uRW3-TeYEt5Fl5x06X3CMONAjVV18eQLzKTeCy8ng6Q-9h9RXVKOYeJIr8IU-3/exec";
 
-        function buyPlan(plan) {
-            const id = getEl('display-machine-id').innerText;
-            window.open(`https://api.whatsapp.com/send?phone=989034564000&text=خرید اشتراک ${plan} برای کد: ${id}`, '_blank');
-        }
-async function sendDirectMsg() {
-    const msgInput = document.getElementById('direct-msg-body');
-    const btn = document.getElementById('send-direct-btn');
-    const status = document.getElementById('direct-msg-status');
-    const machineId = document.getElementById('display-machine-id').innerText.trim();
+            if (!msgInput.value.trim()) {
+                alert("لطفاً متن پیام را وارد کنید.");
+                return;
+            }
 
-    // لینک دقیق وب‌اپلیکیشن شما
-    const scriptURL = "https://script.google.com/macros/s/AKfycbyjy2uRW3-TeYEt5Fl5x06X3CMONAjVV18eQLzKTeCy8ng6Q-9h9RXVKOYeJIr8IU-3/exec";
+            btn.disabled = true;
+            status.style.color = "#2563eb";
+            status.innerText = "⌛ در حال ارسال...";
 
-    if (!msgInput.value.trim()) {
-        alert("لطفاً متن پیام را وارد کنید.");
-        return;
-    }
+            const params = new URLSearchParams();
+            params.append('machineId', machineId);
+            params.append('message', msgInput.value);
 
-    btn.disabled = true;
-    status.style.color = "#2563eb";
-    status.innerText = "⌛ در حال ارسال...";
-
-    // ایجاد داده‌ها برای ارسال به صورت پارامتر
-    const params = new URLSearchParams();
-    params.append('machineId', machineId);
-    params.append('message', msgInput.value);
-
-    try {
-        await fetch(scriptURL + "?" + params.toString(), {
-            method: 'POST',
-            mode: 'no-cors' 
-        });
-
-        // نمایش موفقیت
-        status.style.color = "green";
-        status.innerText = "✅ پیام شما در صف بررسی قرار گرفت.";
-        msgInput.value = ""; 
-
-    } catch (error) {
-        status.style.color = "red";
-        status.innerText = "❌ خطا در برقراری ارتباط با سرور";
-    } finally {
-        setTimeout(() => {
-            btn.disabled = false;
-            status.innerText = "";
-        }, 5000);
-    }
-}       getEl('clear-all-data-btn').onclick = () => {
+            try {
+                await fetch(scriptURL + "?" + params.toString(), {
+                    method: 'POST',
+                    mode: 'no-cors' 
+                });
+                status.style.color = "green";
+                status.innerText = "✅ پیام شما با موفقیت ارسال شد.";
+                msgInput.value = ""; 
+            } catch (error) {
+                status.style.color = "red";
+                status.innerText = "❌ خطا در اتصال به سرور پیام";
+            } finally {
+                setTimeout(() => {
+                    btn.disabled = false;
+                    status.innerText = "";
+                }, 5000);
+            }
+        } 
+        
+        getEl('clear-all-data-btn').onclick = () => {
             if(confirm('تمام تنظیمات و مدل‌ها حذف شوند؟')) { localStorage.clear(); location.reload(); }
         };
 
