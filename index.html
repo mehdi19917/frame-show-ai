@@ -667,41 +667,46 @@ async function sendDirectMsg() {
     const status = document.getElementById('direct-msg-status');
     const machineId = document.getElementById('display-machine-id').innerText.trim();
 
-    if(!msgInput.value.trim()) { 
-        alert("لطفاً متن پیام را وارد کنید"); 
-        return; 
+    // لینک اختصاصی شما که در مرحله قبل ساختید
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwphJ-h0QQr5zh1EVzxVkbonOU24Gi9kZh9rrhePcUidgGpkcPfcGc6QVxyjCx7JyI/exec";
+
+    if (!msgInput.value.trim()) {
+        alert("لطفاً پیام خود را وارد کنید.");
+        return;
     }
 
-    // آدرس دقیق فرم شما طبق اسکرین‌شات
-    const formActionURL = "https://docs.google.com/forms/d/e/1FAIpQLScyY5N3G2Xm0H6zX-fXfXfXfXfXfXfXf/formResponse";
-    
+    // تغییر ظاهر دکمه هنگام ارسال
     btn.disabled = true;
-    status.innerText = "⌛ در حال ارسال...";
-
-    // ایجاد پارامترها برای ارسال به هر دو ستون گوگل شیت
-    const urlParams = new URLSearchParams();
-    urlParams.append("entry.254631940", machineId); // ستون Machine ID
-    urlParams.append("entry.472638086", msgInput.value); // ستون UserMessage
+    status.style.color = "blue";
+    status.innerText = "⌛ در حال ارسال به شیت...";
 
     try {
-        await fetch(formActionURL, {
+        // ارسال داده‌ها به صورت JSON
+        await fetch(scriptURL, {
             method: 'POST',
-            mode: 'no-cors',
+            mode: 'no-cors', // برای جلوگیری از محدودیت‌های مرورگر
+            cache: 'no-cache',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/json'
             },
-            body: urlParams.toString()
+            body: JSON.stringify({
+                "machineId": machineId,
+                "message": msgInput.value
+            })
         });
-        
-        // موفقیت آمیز
-        status.style.color = "#28a745";
-        status.innerText = "✅ پیام با موفقیت در شیت ثبت شد";
-        msgInput.value = "";
-    } catch(e) {
-        status.style.color = "#dc3545";
-        status.innerText = "❌ خطا در ارسال. دوباره تلاش کنید";
+
+        // نمایش پیام موفقیت
+        status.style.color = "green";
+        status.innerText = "✅ پیام با موفقیت در گوگل شیت ثبت شد.";
+        msgInput.value = ""; // پاک کردن فیلد متن
+
+    } catch (error) {
+        console.error('Error:', error);
+        status.style.color = "red";
+        status.innerText = "❌ خطا در ارسال پیام.";
     } finally {
-        setTimeout(() => { 
+        // فعال کردن مجدد دکمه بعد از چند ثانیه
+        setTimeout(() => {
             btn.disabled = false;
             status.innerText = "";
         }, 5000);
