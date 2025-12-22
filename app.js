@@ -1,4 +1,4 @@
-// app.js - نسخه جامع (سازگار با وب و Electron)
+// app.js - نسخه جامع (سازگار با وب و Electron) + متصل به Google Forms
 
 // =========================================================================================
 // ********************** متغیرهای سراسری (Global Variables) **********************
@@ -27,6 +27,29 @@ const WINDOWS_INDEX_KEY = 'windows_models';
 
 // چک کردن اینکه آیا در محیط Electron هستیم یا مرورگر معمولی
 const isElectron = typeof window.electronAPI !== 'undefined';
+
+// =========================================================================================
+// ********************** تابع ارسال گزارش به Google Form **********************
+// =========================================================================================
+
+async function sendToGoogleForm(machineId, planName) {
+    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdhxjZHSBY92_TxyUB5deFnivRbiDQLdRDvIR1X4sC6sSy0FQ/formResponse";
+    const formData = new FormData();
+    
+    // آی‌دی فیلد شما: entry.579462829
+    formData.append("entry.579462829", `User: ${machineId} | Requesting Plan: ${planName} | Date: ${new Date().toLocaleString('fa-IR')}`);
+
+    try {
+        await fetch(formURL, {
+            method: "POST",
+            mode: "no-cors",
+            body: formData
+        });
+        console.log("Report sent to Google Form");
+    } catch (error) {
+        console.error("Error sending report:", error);
+    }
+}
 
 // =========================================================================================
 // ********************** تابع آپلود تصویر پس‌زمینه **********************
@@ -138,12 +161,10 @@ async function renderVTO_Python(vtoType) {
 
     if (!bgImg.src || !canvas || !modelData || !modelData.img) return;
     
-    // اگر در مرورگر بودیم و پایتون نبود، رندر ساده انجام بده
     if (!isElectron) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(bgImg, 0, 0);
-        // رندر نمایشی مدل
         ctx.drawImage(modelData.img, pointsArray[0].x, pointsArray[0].y, pointsArray[2].x - pointsArray[0].x, pointsArray[2].y - pointsArray[0].y);
         return;
     }
@@ -188,9 +209,12 @@ async function startPayment(planType) {
     let machineId = "WEB_USER";
     if(isElectron) machineId = await window.electronAPI.getMachineId();
     
+    // ارسال گزارش به گوگل فرم قبل از انتقال به درگاه
+    await sendToGoogleForm(machineId, planType);
+    
     const checkoutUrl = `https://your-website.com/pay?mid=${machineId}&plan=${planType}`;
     
-    alert("در حال انتقال به درگاه پرداخت امن زرین‌پال...");
+    alert("درخواست شما ثبت شد. در حال انتقال به درگاه پرداخت...");
     window.open(checkoutUrl, '_blank');
 
     if (isElectron) {
@@ -300,7 +324,6 @@ async function handleCmsSubmit(e, vtoType) {
                 await window.electronAPI.executeFsOperation('saveFile', vtoType === 'door' ? 'doors' : 'windows', fileName, file.path);
                 models.push({ id, name: nameInput.value || file.name, file: fileName });
             } else {
-                // در حالت وب، تصویر را به صورت Base64 ذخیره می‌کنیم
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
                     models.push({ id, name: nameInput.value || file.name, imgData: ev.target.result });
@@ -438,7 +461,6 @@ async function handleModelSelect(e, isDoor) {
                 img.src = path;
             }
         } else {
-            // حالت وب
             const img = new Image();
             img.onload = () => {
                 if(isDoor) currentDoorModel = { ...model, img }; else currentWindowModel = { ...model, img };
