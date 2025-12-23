@@ -377,7 +377,7 @@
     </div> 
 
     <script>
-        const LICENSE_API = "https://script.google.com/macros/s/AKfycbzSZlK4cp3QzGKklQwFZXWteGuwf8HK6M1IQvpbmKAl_aQmuEMT1Z1IoQ4kjvbSbO6G/exec";
+        const LICENSE_API = "https://script.google.com/macros/s/AKfycbyAXq9QJbIydWv9wuRPv4wp2ZGM-XrgeW-jg343s_TD9vdeREAi5_bePQDkjHex-aYq/exec";
         
         const state = {
             door: { bg: null, overlay: null, points: [], activePoint: null },
@@ -417,41 +417,45 @@ window[callbackName] = function(result) {
     delete window[callbackName];
     document.body.removeChild(script);
 
+    // پاک کردن استایل‌های قبلی
     authBox.classList.remove('auth-active', 'auth-expired');
 
-    // دسته اول: کلمات کلیدی اشتراک مادام‌العمر
+    // لیست کلمات کلیدی برای اشتراک مادام‌العمر (الماسی)
     const lifetimeKeywords = [
         "LIFETIME", "lifetime", "almas", "almasi", "diamond", "diamonds", 
-        "LIFTME", "مادام العمر", "مادام‌العمر"
+        "LIFTME", "مادام العمر", "مادام‌العمر", "الماس", "الماسی"
     ];
 
-    // دسته دوم: کلمات کلیدی اشتراک ۳ ماهه
+    // لیست کلمات کلیدی برای اشتراک ۳ ماهه
     const threeMonthKeywords = [
         "3mahe", "se mah", "3mah", "3 mahe", "3 mah", 
         "سه ماه", "سه ماهه", "3 ماه", "3 ماهه"
     ];
 
-    if (lifetimeKeywords.includes(result)) {
-        // حالت مادام‌العمر
+    // تبدیل نتیجه به حروف کوچک برای بررسی دقیق‌تر (اگر انگلیسی باشد)
+    const cleanResult = result.toString().trim();
+
+    if (lifetimeKeywords.includes(cleanResult) || lifetimeKeywords.includes(cleanResult.toLowerCase())) {
+        // فعال‌سازی حالت مادام‌العمر
         authBox.classList.add('auth-active');
         subText.innerText = "💎 اشتراک فعال (مادام‌العمر)";
         statusTag.innerText = "دسترسی نامحدود تایید شد";
         mainContent.classList.remove('app-locked');
         cmsElements.forEach(el => el.classList.remove('license-hidden'));
 
-    } else if (threeMonthKeywords.includes(result)) {
-        // حالت ۳ ماهه
+    } else if (threeMonthKeywords.includes(cleanResult) || threeMonthKeywords.includes(cleanResult.toLowerCase())) {
+        // فعال‌سازی حالت ۳ ماهه
         authBox.classList.add('auth-active');
         subText.innerText = "🥈 اشتراک فعال (۳ ماهه)";
-        statusTag.innerText = "اعتبار تا ۳ ماه آینده تایید شد";
+        statusTag.innerText = "اعتبار تا ۹۰ روز آینده";
         mainContent.classList.remove('app-locked');
         cmsElements.forEach(el => el.classList.remove('license-hidden'));
 
     } else {
-        // حالت عدم فعال‌سازی یا انقضا
+        // در صورت عدم تطابق یا پیدا نشدن (NOT_FOUND)
         authBox.classList.add('auth-expired');
         subText.innerText = "⚠️ نیاز به فعال‌سازی";
-        statusTag.innerText = "کد شما در لیست نیست یا منقضی شده";
+        statusTag.innerText = "کد شما تایید نشد";
         mainContent.classList.add('app-locked');
         cmsElements.forEach(el => el.classList.add('license-hidden'));
     }
@@ -654,7 +658,7 @@ window[callbackName] = function(result) {
             const btn = document.getElementById('send-direct-btn');
             const status = document.getElementById('direct-msg-status');
             const machineId = document.getElementById('display-machine-id').innerText.trim();
-            const scriptURL = "https://script.google.com/macros/s/AKfycbzSZlK4cp3QzGKklQwFZXWteGuwf8HK6M1IQvpbmKAl_aQmuEMT1Z1IoQ4kjvbSbO6G/exec";
+            const scriptURL = "https://script.google.com/macros/s/AKfycbyAXq9QJbIydWv9wuRPv4wp2ZGM-XrgeW-jg343s_TD9vdeREAi5_bePQDkjHex-aYq/exec";
 
             if (!msgInput.value.trim()) {
                 alert("لطفاً متن پیام را وارد کنید.");
