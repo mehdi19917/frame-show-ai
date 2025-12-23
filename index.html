@@ -401,7 +401,7 @@
             }, 600);
         }
 
-        async function checkLicense() {
+async function checkLicense() {
             const authBox = getEl('auth-container');
             const subText = getEl('subscription-text');
             const statusTag = getEl('connection-status');
@@ -421,24 +421,25 @@
 
                 authBox.classList.remove('auth-active', 'auth-expired');
 
-                const lifetimeKeywords = ["LIFETIME", "lifetime", "almas", "almasi", "diamond", "diamonds", "مادام العمر", "الماس"];
-                const threeMonthKeywords = ["3mahe", "se mah", "3mah", "3 mahe", "سه ماه", "3 ماهه"];
-
-                const cleanResult = result.toString().trim().toLowerCase();
-
-                if (lifetimeKeywords.some(kw => cleanResult.includes(kw.toLowerCase()))) {
+                // بررسی پاسخ هوشمند از سرور
+                if (result && result.status === "PREMIUM") {
                     authBox.classList.add('auth-active');
-                    subText.innerText = "💎 اشتراک فعال (مادام‌العمر)";
-                    statusTag.innerText = "دسترسی نامحدود تایید شد";
                     mainContent.classList.remove('app-locked');
                     cmsElements.forEach(el => el.classList.remove('license-hidden'));
-                } else if (threeMonthKeywords.some(kw => cleanResult.includes(kw.toLowerCase()))) {
-                    authBox.classList.add('auth-active');
-                    subText.innerText = "🥈 اشتراک فعال (۳ ماهه)";
-                    statusTag.innerText = "اعتبار تا ۹۰ روز آینده تایید شد";
-                    mainContent.classList.remove('app-locked');
-                    cmsElements.forEach(el => el.classList.remove('license-hidden'));
+
+                    // تشخیص متن نمایش بر اساس نوع اشتراک
+                    if (result.type === "LIFETIME") {
+                        subText.innerText = "💎 اشتراک فعال (مادام‌العمر - الماس)";
+                        statusTag.innerText = "دسترسی نامحدود تایید شد";
+                    } else if (result.type === "3MONTHS") {
+                        subText.innerText = "🥈 اشتراک فعال (۳ ماهه)";
+                        statusTag.innerText = "اعتبار زمانی تایید شد";
+                    } else {
+                        subText.innerText = "✅ اشتراک حرفه‌ای فعال";
+                        statusTag.innerText = "تایید شده توسط مدیریت";
+                    }
                 } else {
+                    // اگر وضعیت FREE بود یا کدی پیدا نشد
                     authBox.classList.add('auth-expired');
                     subText.innerText = "⚠️ نیاز به فعال‌سازی";
                     statusTag.innerText = "کد شما تایید نشد";
@@ -452,8 +453,7 @@
             script.src = `${LICENSE_API}?machineId=${encodeURIComponent(machineId)}&callback=${callbackName}`;
             document.body.appendChild(script);
         }
-
-        function loadCMS() {
+                function loadCMS() {
             ['door', 'window'].forEach(type => {
                 const list = JSON.parse(localStorage.getItem(`cms_${type}`) || '[]');
                 const select = getEl(`${type}-select`);
