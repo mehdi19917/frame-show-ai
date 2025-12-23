@@ -180,9 +180,8 @@
         .price-card.featured { border-color: var(--secondary-color); background: #fffdfa; }
 
         .btn-primary { background: var(--primary-color); color: white; border: none; cursor: pointer; }
-        .btn-secondary { background: var(--secondary-color); color: white; border: none; cursor: pointer;}
-        .btn-danger { background: var(--danger-color); color: white; border: none; cursor: pointer;}
         .btn-success { background: var(--success-color); color: white; border: none; cursor: pointer;}
+        .btn-danger { background: var(--danger-color); color: white; border: none; cursor: pointer;}
 
         .pulse-animation { animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
@@ -214,15 +213,28 @@
         }
         .cms-item img { width: 50px; height: 50px; object-fit: contain; }
 
-        .direct-support-box {
+        /* استایل بخش جدید ثبت فیش */
+        .receipt-submission-box {
             margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--border-color);
+            padding: 15px;
+            background: #f8fafc;
+            border: 1px dashed var(--primary-color);
+            border-radius: 10px;
+            text-align: center;
         }
-        .direct-support-box textarea {
-            width: 100%; height: 70px; border-radius: 8px; border: 1px solid var(--border-color);
-            padding: 8px; font-family: inherit; font-size: 0.8em; resize: none; box-sizing: border-box; outline: none;
+        .btn-receipt {
+            display: block;
+            text-decoration: none;
+            background: var(--success-color);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-top: 10px;
+            transition: 0.3s;
         }
+        .btn-receipt:hover { opacity: 0.9; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -263,11 +275,18 @@
                 <button id="nav-tutorial" style="background: #64748b; color: white; border: none;">💡 راهنما و آموزش</button>
             </nav>
 
-            <div class="direct-support-box">
-                <small style="display:block; margin-bottom:5px; color:var(--primary-color); font-weight:bold;">✉️ ارسال پیام به مدیریت:</small>
-                <textarea id="direct-msg-body" placeholder="گزارش پرداخت یا سوال فنی..."></textarea>
-                <button onclick="sendDirectMsg()" id="send-direct-btn" class="btn-primary" style="width:100%; margin-top:5px; padding:8px; border-radius:6px; font-size:0.85em;">ارسال سریع</button>
-                <div id="direct-msg-status" style="font-size:0.75em; text-align:center; margin-top:5px;"></div>
+            <div class="receipt-submission-box">
+                <small style="display:block; margin-bottom:5px; color:var(--primary-color); font-weight:bold;">✅ ثبت واریز و فعال‌سازی:</small>
+                <p style="font-size: 0.7em; color: #666; margin-bottom: 8px;">پس از واریز وجه، جهت تایید آنی روی دکمه زیر کلیک کنید.</p>
+                
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSe2V9_r_fP_laQBXAgrNiNMKqlb6J6Tk4ZEf9yPWkLr9tkkzQ/viewform" 
+                   target="_blank" class="btn-receipt">
+                   📤 ارسال عکس فیش واریزی
+                </a>
+                
+                <div style="margin-top: 10px; font-size: 0.65em; color: var(--danger-color);">
+                    * ابتدا کد لایسنس خود را کپی کنید.
+                </div>
             </div>
             
             <div class="contact-info" style="margin-top: 20px; font-size: 0.85em; text-align: center;">
@@ -291,7 +310,6 @@
                             <li>✅ خروجی با کیفیت HD</li>
                             <li>✅ حذف واترمارک</li>
                         </ul>
-                        <div style="font-size: 0.8em; color: #666;">جهت خرید، کد اختصاصی خود را از پنل سمت راست کپی کرده و در پیام به مدیریت ارسال کنید.</div>
                     </div>
                     <div class="price-card featured">
                         <h3>اشتراک الماسی</h3>
@@ -302,7 +320,6 @@
                             <li>✅ آپدیت‌های رایگان</li>
                             <li>✅ پشتیبانی ویژه</li>
                         </ul>
-                        <div style="font-size: 0.8em; color: #666;">محبوب‌ترین پلن برای حرفه‌ای‌ها</div>
                     </div>
                 </div>
             </div>
@@ -377,8 +394,7 @@
     </div> 
 
     <script>
-        // آدرس جدید API شما
-        const LICENSE_API = "https://script.google.com/macros/s/AKfycbw7W97xbd137tEq4FeuzAcwxxmE5jf2Xr1R0V7YRvjCeMLQ1PRmG5O7vey59k9XC3v7/exec";
+        const LICENSE_API = "https://script.google.com/macros/s/AKfycbxYfVMH1DuJ6Y_69IsD0HO-En5Fz7eMwsmoZO_Q050U0ZdMhSQLV4q30wvV3Ejxw0G9/exec";
         
         const state = {
             door: { bg: null, overlay: null, points: [], activePoint: null },
@@ -401,7 +417,7 @@
             }, 600);
         }
 
-async function checkLicense() {
+        async function checkLicense() {
             const authBox = getEl('auth-container');
             const subText = getEl('subscription-text');
             const statusTag = getEl('connection-status');
@@ -421,25 +437,19 @@ async function checkLicense() {
 
                 authBox.classList.remove('auth-active', 'auth-expired');
 
-                // بررسی پاسخ هوشمند از سرور
                 if (result && result.status === "PREMIUM") {
                     authBox.classList.add('auth-active');
                     mainContent.classList.remove('app-locked');
                     cmsElements.forEach(el => el.classList.remove('license-hidden'));
 
-                    // تشخیص متن نمایش بر اساس نوع اشتراک
                     if (result.type === "LIFETIME") {
-                        subText.innerText = "💎 اشتراک فعال (مادام‌العمر - الماس)";
+                        subText.innerText = "💎 اشتراک فعال (مادام‌العمر)";
                         statusTag.innerText = "دسترسی نامحدود تایید شد";
-                    } else if (result.type === "3MONTHS") {
-                        subText.innerText = "🥈 اشتراک فعال (۳ ماهه)";
-                        statusTag.innerText = "اعتبار زمانی تایید شد";
                     } else {
                         subText.innerText = "✅ اشتراک حرفه‌ای فعال";
                         statusTag.innerText = "تایید شده توسط مدیریت";
                     }
                 } else {
-                    // اگر وضعیت FREE بود یا کدی پیدا نشد
                     authBox.classList.add('auth-expired');
                     subText.innerText = "⚠️ نیاز به فعال‌سازی";
                     statusTag.innerText = "کد شما تایید نشد";
@@ -453,7 +463,8 @@ async function checkLicense() {
             script.src = `${LICENSE_API}?machineId=${encodeURIComponent(machineId)}&callback=${callbackName}`;
             document.body.appendChild(script);
         }
-                function loadCMS() {
+
+        function loadCMS() {
             ['door', 'window'].forEach(type => {
                 const list = JSON.parse(localStorage.getItem(`cms_${type}`) || '[]');
                 const select = getEl(`${type}-select`);
@@ -480,10 +491,12 @@ async function checkLicense() {
         }
 
         window.deleteItem = (type, index) => {
-            const list = JSON.parse(localStorage.getItem(`cms_${type}`) || '[]');
-            list.splice(index, 1);
-            localStorage.setItem(`cms_${type}`, JSON.stringify(list));
-            loadCMS();
+            if(confirm('آیا از حذف این مدل مطمئن هستید؟')) {
+                const list = JSON.parse(localStorage.getItem(`cms_${type}`) || '[]');
+                list.splice(index, 1);
+                localStorage.setItem(`cms_${type}`, JSON.stringify(list));
+                loadCMS();
+            }
         };
 
         ['door', 'window'].forEach(type => {
@@ -498,7 +511,7 @@ async function checkLicense() {
                     localStorage.setItem(`cms_${type}`, JSON.stringify(list));
                     getEl(`cms-${type}-form`).reset();
                     loadCMS();
-                    alert('با موفقیت اضافه شد');
+                    alert('مدل با موفقیت به کتابخانه اضافه شد');
                 };
                 reader.readAsDataURL(file);
             };
@@ -641,47 +654,7 @@ async function checkLicense() {
             navigator.clipboard.writeText(getEl('display-machine-id').innerText).then(() => alert("کد لایسنس کپی شد."));
         }
 
-        async function sendDirectMsg() {
-            const msgInput = document.getElementById('direct-msg-body');
-            const btn = document.getElementById('send-direct-btn');
-            const status = document.getElementById('direct-msg-status');
-            const machineId = document.getElementById('display-machine-id').innerText.trim();
-            
-            if (!msgInput.value.trim()) {
-                alert("لطفاً متن پیام را وارد کنید.");
-                return;
-            }
-
-            btn.disabled = true;
-            status.style.color = "#2563eb";
-            status.innerText = "⌛ در حال ارسال پیام...";
-
-            const finalURL = `${LICENSE_API}?machineId=${encodeURIComponent(machineId)}&message=${encodeURIComponent(msgInput.value)}&callback=jsonp_msg_${Date.now()}`;
-
-            const script = document.createElement('script');
-            script.src = finalURL;
-            
-            script.onload = () => {
-                status.style.color = "green";
-                status.innerText = "✅ پیام با موفقیت به مدیریت ارسال شد.";
-                msgInput.value = "";
-                document.body.removeChild(script);
-                setTimeout(() => { btn.disabled = false; status.innerText = ""; }, 4000);
-            };
-
-            script.onerror = () => {
-                status.style.color = "red";
-                status.innerText = "❌ خطا در اتصال به سرور.";
-                btn.disabled = false;
-                if(document.body.contains(script)) document.body.removeChild(script);
-            };
-
-            document.body.appendChild(script);
-        }
-
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
-
-
