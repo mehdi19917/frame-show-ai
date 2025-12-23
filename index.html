@@ -377,7 +377,7 @@
     </div> 
 
     <script>
-        const LICENSE_API = "https://script.google.com/macros/s/AKfycbyAXq9QJbIydWv9wuRPv4wp2ZGM-XrgeW-jg343s_TD9vdeREAi5_bePQDkjHex-aYq/exec";
+        const LICENSE_API = "https://script.google.com/macros/s/AKfycbyXcAwexlf2lKOzqC94zzvsbcd88mZAG0RAyLMDINo_NPuF2a7tbOUaIT7qfx64qZN4/exec";
         
         const state = {
             door: { bg: null, overlay: null, points: [], activePoint: null },
@@ -654,47 +654,47 @@ window[callbackName] = function(result) {
         }
 
         async function sendDirectMsg() {
-            const msgInput = document.getElementById('direct-msg-body');
-            const btn = document.getElementById('send-direct-btn');
-            const status = document.getElementById('direct-msg-status');
-            const machineId = document.getElementById('display-machine-id').innerText.trim();
-            const scriptURL = "https://script.google.com/macros/s/AKfycbyAXq9QJbIydWv9wuRPv4wp2ZGM-XrgeW-jg343s_TD9vdeREAi5_bePQDkjHex-aYq/exec";
+    const msgInput = document.getElementById('direct-msg-body');
+    const btn = document.getElementById('send-direct-btn');
+    const status = document.getElementById('direct-msg-status');
+    const machineId = document.getElementById('display-machine-id').innerText.trim();
+    
+    // آدرس جدید شما
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyXcAwexlf2lKOzqC94zzvsbcd88mZAG0RAyLMDINo_NPuF2a7tbOUaIT7qfx64qZN4/exec";
 
-            if (!msgInput.value.trim()) {
-                alert("لطفاً متن پیام را وارد کنید.");
-                return;
-            }
+    if (!msgInput.value.trim()) {
+        alert("لطفاً متن پیام را وارد کنید.");
+        return;
+    }
 
-            btn.disabled = true;
-            status.style.color = "#2563eb";
-            status.innerText = "⌛ در حال ارسال...";
+    btn.disabled = true;
+    status.style.color = "#2563eb";
+    status.innerText = "⌛ در حال ارسال پیام...";
 
-            const params = new URLSearchParams();
-            params.append('machineId', machineId);
-            params.append('message', msgInput.value);
+    // ایجاد درخواست به صورت JSONP (چون گوگل اسکریپت با GET و Callback بهتر کار می‌کند)
+    const finalURL = `${scriptURL}?machineId=${encodeURIComponent(machineId)}&message=${encodeURIComponent(msgInput.value)}&callback=jsonp_msg_${Date.now()}`;
 
-            try {
-                await fetch(scriptURL + "?" + params.toString(), {
-                    method: 'POST',
-                    mode: 'no-cors' 
-                });
-                status.style.color = "green";
-                status.innerText = "✅ پیام شما با موفقیت ارسال شد.";
-                msgInput.value = ""; 
-            } catch (error) {
-                status.style.color = "red";
-                status.innerText = "❌ خطا در اتصال به سرور پیام";
-            } finally {
-                setTimeout(() => {
-                    btn.disabled = false;
-                    status.innerText = "";
-                }, 5000);
-            }
-        } 
-        
-        getEl('clear-all-data-btn').onclick = () => {
-            if(confirm('تمام تنظیمات و مدل‌ها حذف شوند؟')) { localStorage.clear(); location.reload(); }
-        };
+    const script = document.createElement('script');
+    script.src = finalURL;
+    
+    // مدیریت موفقیت یا خطا
+    script.onload = () => {
+        status.style.color = "green";
+        status.innerText = "✅ پیام با موفقیت به گوگل‌شیت ارسال شد.";
+        msgInput.value = "";
+        document.body.removeChild(script);
+        setTimeout(() => { btn.disabled = false; status.innerText = ""; }, 4000);
+    };
+
+    script.onerror = () => {
+        status.style.color = "red";
+        status.innerText = "❌ خطا در اتصال به سرور.";
+        btn.disabled = false;
+        if(document.body.contains(script)) document.body.removeChild(script);
+    };
+
+    document.body.appendChild(script);
+}
 
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
