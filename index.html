@@ -61,11 +61,20 @@
             transition: all 0.4s ease;
         }
 
+        /* --- اصلاح بخش قفل برنامه --- */
         .app-locked {
-            filter: blur(4px) grayscale(100%);
-            pointer-events: none;
-            opacity: 0.7;
+            filter: none !important; /* لایه اصلی دیگر تار نمی‌شود */
+            pointer-events: auto !important;
+            opacity: 1 !important;
         }
+
+        /* فقط بخش‌هایی که آیدی pricing ندارند تار شوند */
+        .main-content.app-locked .view:not(#pricing) {
+            filter: blur(5px) grayscale(100%);
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        /* --------------------------- */
 
         .license-hidden {
             display: none !important;
@@ -99,7 +108,6 @@
         .auth-active { background-color: var(--success-color) !important; }
         .auth-expired { background-color: var(--danger-color) !important; }
 
-        /* استایل جدید لایسنس درشت */
         .machine-id-box {
             font-family: 'Courier New', monospace;
             background: #000;
@@ -525,6 +533,7 @@
                     authBox.classList.add('auth-expired');
                     subText.innerText = "⚠️ نیاز به فعال‌سازی";
                     statusTag.innerText = "کد شما تایید نشد";
+                    // اضافه کردن کلاس قفل
                     mainContent.classList.add('app-locked');
                     cmsElements.forEach(el => el.classList.add('license-hidden'));
                 }
