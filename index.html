@@ -213,7 +213,6 @@
         }
         .cms-item img { width: 50px; height: 50px; object-fit: contain; }
 
-        /* استایل بخش جدید ثبت فیش */
         .receipt-submission-box {
             margin-top: 20px;
             padding: 15px;
@@ -235,6 +234,37 @@
             transition: 0.3s;
         }
         .btn-receipt:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* استایل کارت بانکی طلایی */
+        .bank-card {
+            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            color: #444;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            direction: ltr;
+            margin: 20px auto;
+            max-width: 400px;
+            min-height: 200px;
+            text-align: left;
+        }
+        .bank-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shine 5s infinite;
+        }
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 150%; }
+            100% { left: 150%; }
+        }
     </style>
 </head>
 <body>
@@ -281,7 +311,7 @@
                 
                 <a href="https://docs.google.com/forms/d/e/1FAIpQLSe2V9_r_fP_laQBXAgrNiNMKqlb6J6Tk4ZEf9yPWkLr9tkkzQ/viewform" 
                    target="_blank" class="btn-receipt">
-                   📤 ارسال عکس فیش واریزی
+                    📤 ارسال عکس فیش واریزی
                 </a>
                 
                 <div style="margin-top: 10px; font-size: 0.65em; color: var(--danger-color);">
@@ -300,11 +330,34 @@
             
             <div id="pricing" class="view">
                 <h2 style="text-align: center;">💎 ارتقای اشتراک حرفه‌ای</h2>
+                
+                <div class="bank-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="font-size: 0.9em; font-weight: bold; color: #5d4418; font-family: Arial;">blu Card | Gold</div>
+                        <div style="font-weight: bold; color: #5d4418; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 5px;">blubank</div>
+                    </div>
+                    
+                    <div class="card-number" style="color: #111; font-weight: bold; font-size: 1.6em; margin: 35px 0; text-align: center; font-family: 'Courier New', monospace; letter-spacing: 2px; text-shadow: 1px 1px 1px rgba(255,255,255,0.6);">
+                        ۶۲۱۹ - ۸۶۱۹ - ۷۹۹۸ - ۳۵۳۲
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div class="card-holder">
+                            <div style="font-size: 0.65em; color: #5d4418; text-transform: uppercase; margin-bottom: 2px;">Card Holder</div>
+                            <div style="font-size: 1.1em; color: #000; font-weight: bold; font-family: 'Segoe UI', Arial; line-height: 1.2;">MEHDI MOUSAALI</div>
+                            <div style="font-size: 1em; color: #222; font-family: 'Tahoma', sans-serif; margin-top: 2px; direction: rtl;">مهدی موسی علی</div>
+                        </div>
+                        <div style="text-align: right; opacity: 0.8;">
+                             <div style="font-size: 0.7em; color: #5d4418;">blubank.com</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="pricing-container">
                     <div class="price-card">
                         <h3>اشتراک نقره‌ای</h3>
-                        <div class="amount">۴۵۰,۰۰۰ <small style="font-size: 0.4em;">تومان</small></div>
-                        <ul style="list-style: none; padding: 0; text-align: right; margin: 20px 0;">
+                        <div style="font-size: 1.5em; font-weight: bold; color: #555;">۴۵۰,۰۰۰ <small style="font-size: 0.5em;">تومان</small></div>
+                        <ul style="list-style: none; padding: 0; text-align: right; margin: 20px 0; line-height: 2;">
                             <li>✅ اعتبار ۳ ماهه</li>
                             <li>✅ آپلود نامحدود مدل</li>
                             <li>✅ خروجی با کیفیت HD</li>
@@ -312,9 +365,9 @@
                         </ul>
                     </div>
                     <div class="price-card featured">
-                        <h3>اشتراک الماسی</h3>
-                        <div class="amount">۱,۹۰۰,۰۰۰ <small style="font-size: 0.4em;">تومان</small></div>
-                        <ul style="list-style: none; padding: 0; text-align: right; margin: 20px 0;">
+                        <h3 style="color: var(--secondary-color);">اشتراک الماسی</h3>
+                        <div style="font-size: 1.5em; font-weight: bold; color: var(--secondary-color);">۱,۹۰۰,۰۰۰ <small style="font-size: 0.5em;">تومان</small></div>
+                        <ul style="list-style: none; padding: 0; text-align: right; margin: 20px 0; line-height: 2;">
                             <li>✅ <b>دسترسی مادام‌العمر</b></li>
                             <li>✅ نصب روی ۲ سیستم همزمان</li>
                             <li>✅ آپدیت‌های رایگان</li>
@@ -394,7 +447,7 @@
     </div> 
 
     <script>
-        const LICENSE_API = "https://script.google.com/macros/s/AKfycbyY22y2NHHzuon_xj9D1azDr14CLyypmBdQ4-lvBv6E0-D1ge7LoaDlKvhXFszFkGXQ/exec";
+        const LICENSE_API = "https://script.google.com/macros/s/AKfycbzlMtx_IbF2E-XxuCi5PLuu-CRO-E2iwoLLm2BXC06YymHpZ3JUjsm7EHPS7fmnSkvO/exec";
         
         const state = {
             door: { bg: null, overlay: null, points: [], activePoint: null },
@@ -658,5 +711,3 @@
     </script>
 </body>
 </html>
-
-
