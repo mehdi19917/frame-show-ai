@@ -274,7 +274,7 @@
                 <p style="margin-bottom: 10px; color: #666;">By: Mehdi Mousaali</p>
             </div>
             
-            <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8em; border-radius: 6px;">⚠️ حذف داده‌های برنامه</button>
+            <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8em; border-radius: 6px;" onclick="if(confirm('آیا از حذف تمام مدل‌ها و بازنشانی برنامه مطمئن هستید؟')){localStorage.clear(); location.reload();}">⚠️ حذف داده‌های برنامه</button>
         </div>
 
         <div class="main-content">
@@ -377,6 +377,7 @@
     </div> 
 
     <script>
+        // آدرس جدید API شما
         const LICENSE_API = "https://script.google.com/macros/s/AKfycbw1ubvdRY7I6kenepqKUzyhgILdOQRl-xKfKX6hzMUwbpPg_qhwuP6895LayfSTZDgo/exec";
         
         const state = {
@@ -399,71 +400,58 @@
                 btn.disabled = false;
             }, 600);
         }
-async function checkLicense() {
-    const authBox = getEl('auth-container');
-    const subText = getEl('subscription-text');
-    const statusTag = getEl('connection-status');
-    const machineId = getEl('display-machine-id').innerText.trim();
-    const mainContent = document.querySelector('.main-content');
-    const cmsElements = document.querySelectorAll('.license-control');
 
-    if(machineId.includes("در حال")) return;
-    statusTag.innerText = "در حال استعلام وضعیت...";
+        async function checkLicense() {
+            const authBox = getEl('auth-container');
+            const subText = getEl('subscription-text');
+            const statusTag = getEl('connection-status');
+            const machineId = getEl('display-machine-id').innerText.trim();
+            const mainContent = document.querySelector('.main-content');
+            const cmsElements = document.querySelectorAll('.license-control');
 
-    // ایجاد یک نام موقت برای تابع بازگشتی
-    const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-    
-window[callbackName] = function(result) {
-    delete window[callbackName];
-    document.body.removeChild(script);
+            if(machineId.includes("در حال")) return;
+            statusTag.innerText = "در حال استعلام وضعیت...";
 
-    // پاک کردن استایل‌های قبلی
-    authBox.classList.remove('auth-active', 'auth-expired');
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            
+            window[callbackName] = function(result) {
+                delete window[callbackName];
+                const sc = document.getElementById('jsonp-license-script');
+                if(sc) document.body.removeChild(sc);
 
-    // لیست کلمات کلیدی برای اشتراک مادام‌العمر (الماسی)
-    const lifetimeKeywords = [
-        "LIFETIME", "lifetime", "almas", "almasi", "diamond", "diamonds", 
-        "LIFTME", "مادام العمر", "مادام‌العمر", "الماس", "الماسی"
-    ];
+                authBox.classList.remove('auth-active', 'auth-expired');
 
-    // لیست کلمات کلیدی برای اشتراک ۳ ماهه
-    const threeMonthKeywords = [
-        "3mahe", "se mah", "3mah", "3 mahe", "3 mah", 
-        "سه ماه", "سه ماهه", "3 ماه", "3 ماهه"
-    ];
+                const lifetimeKeywords = ["LIFETIME", "lifetime", "almas", "almasi", "diamond", "diamonds", "مادام العمر", "الماس"];
+                const threeMonthKeywords = ["3mahe", "se mah", "3mah", "3 mahe", "سه ماه", "3 ماهه"];
 
-    // تبدیل نتیجه به حروف کوچک برای بررسی دقیق‌تر (اگر انگلیسی باشد)
-    const cleanResult = result.toString().trim();
+                const cleanResult = result.toString().trim().toLowerCase();
 
-    if (lifetimeKeywords.includes(cleanResult) || lifetimeKeywords.includes(cleanResult.toLowerCase())) {
-        // فعال‌سازی حالت مادام‌العمر
-        authBox.classList.add('auth-active');
-        subText.innerText = "💎 اشتراک فعال (مادام‌العمر)";
-        statusTag.innerText = "دسترسی نامحدود تایید شد";
-        mainContent.classList.remove('app-locked');
-        cmsElements.forEach(el => el.classList.remove('license-hidden'));
+                if (lifetimeKeywords.some(kw => cleanResult.includes(kw.toLowerCase()))) {
+                    authBox.classList.add('auth-active');
+                    subText.innerText = "💎 اشتراک فعال (مادام‌العمر)";
+                    statusTag.innerText = "دسترسی نامحدود تایید شد";
+                    mainContent.classList.remove('app-locked');
+                    cmsElements.forEach(el => el.classList.remove('license-hidden'));
+                } else if (threeMonthKeywords.some(kw => cleanResult.includes(kw.toLowerCase()))) {
+                    authBox.classList.add('auth-active');
+                    subText.innerText = "🥈 اشتراک فعال (۳ ماهه)";
+                    statusTag.innerText = "اعتبار تا ۹۰ روز آینده تایید شد";
+                    mainContent.classList.remove('app-locked');
+                    cmsElements.forEach(el => el.classList.remove('license-hidden'));
+                } else {
+                    authBox.classList.add('auth-expired');
+                    subText.innerText = "⚠️ نیاز به فعال‌سازی";
+                    statusTag.innerText = "کد شما تایید نشد";
+                    mainContent.classList.add('app-locked');
+                    cmsElements.forEach(el => el.classList.add('license-hidden'));
+                }
+            };
 
-    } else if (threeMonthKeywords.includes(cleanResult) || threeMonthKeywords.includes(cleanResult.toLowerCase())) {
-        // فعال‌سازی حالت ۳ ماهه
-        authBox.classList.add('auth-active');
-        subText.innerText = "🥈 اشتراک فعال (۳ ماهه)";
-        statusTag.innerText = "اعتبار تا ۹۰ روز آینده";
-        mainContent.classList.remove('app-locked');
-        cmsElements.forEach(el => el.classList.remove('license-hidden'));
-
-    } else {
-        // در صورت عدم تطابق یا پیدا نشدن (NOT_FOUND)
-        authBox.classList.add('auth-expired');
-        subText.innerText = "⚠️ نیاز به فعال‌سازی";
-        statusTag.innerText = "کد شما تایید نشد";
-        mainContent.classList.add('app-locked');
-        cmsElements.forEach(el => el.classList.add('license-hidden'));
-    }
-};
-    const script = document.createElement('script');
-    script.src = `${LICENSE_API}?machineId=${encodeURIComponent(machineId)}&callback=${callbackName}`;
-    document.body.appendChild(script);
-}
+            const script = document.createElement('script');
+            script.id = 'jsonp-license-script';
+            script.src = `${LICENSE_API}?machineId=${encodeURIComponent(machineId)}&callback=${callbackName}`;
+            document.body.appendChild(script);
+        }
 
         function loadCMS() {
             ['door', 'window'].forEach(type => {
@@ -654,47 +642,42 @@ window[callbackName] = function(result) {
         }
 
         async function sendDirectMsg() {
-    const msgInput = document.getElementById('direct-msg-body');
-    const btn = document.getElementById('send-direct-btn');
-    const status = document.getElementById('direct-msg-status');
-    const machineId = document.getElementById('display-machine-id').innerText.trim();
-    
-    // آدرس جدید شما
-    const scriptURL = "https://script.google.com/macros/s/AKfycbw1ubvdRY7I6kenepqKUzyhgILdOQRl-xKfKX6hzMUwbpPg_qhwuP6895LayfSTZDgo/exec";
+            const msgInput = document.getElementById('direct-msg-body');
+            const btn = document.getElementById('send-direct-btn');
+            const status = document.getElementById('direct-msg-status');
+            const machineId = document.getElementById('display-machine-id').innerText.trim();
+            
+            if (!msgInput.value.trim()) {
+                alert("لطفاً متن پیام را وارد کنید.");
+                return;
+            }
 
-    if (!msgInput.value.trim()) {
-        alert("لطفاً متن پیام را وارد کنید.");
-        return;
-    }
+            btn.disabled = true;
+            status.style.color = "#2563eb";
+            status.innerText = "⌛ در حال ارسال پیام...";
 
-    btn.disabled = true;
-    status.style.color = "#2563eb";
-    status.innerText = "⌛ در حال ارسال پیام...";
+            const finalURL = `${LICENSE_API}?machineId=${encodeURIComponent(machineId)}&message=${encodeURIComponent(msgInput.value)}&callback=jsonp_msg_${Date.now()}`;
 
-    // ایجاد درخواست به صورت JSONP (چون گوگل اسکریپت با GET و Callback بهتر کار می‌کند)
-    const finalURL = `${scriptURL}?machineId=${encodeURIComponent(machineId)}&message=${encodeURIComponent(msgInput.value)}&callback=jsonp_msg_${Date.now()}`;
+            const script = document.createElement('script');
+            script.src = finalURL;
+            
+            script.onload = () => {
+                status.style.color = "green";
+                status.innerText = "✅ پیام با موفقیت به مدیریت ارسال شد.";
+                msgInput.value = "";
+                document.body.removeChild(script);
+                setTimeout(() => { btn.disabled = false; status.innerText = ""; }, 4000);
+            };
 
-    const script = document.createElement('script');
-    script.src = finalURL;
-    
-    // مدیریت موفقیت یا خطا
-    script.onload = () => {
-        status.style.color = "green";
-        status.innerText = "✅ پیام با موفقیت به گوگل‌شیت ارسال شد.";
-        msgInput.value = "";
-        document.body.removeChild(script);
-        setTimeout(() => { btn.disabled = false; status.innerText = ""; }, 4000);
-    };
+            script.onerror = () => {
+                status.style.color = "red";
+                status.innerText = "❌ خطا در اتصال به سرور.";
+                btn.disabled = false;
+                if(document.body.contains(script)) document.body.removeChild(script);
+            };
 
-    script.onerror = () => {
-        status.style.color = "red";
-        status.innerText = "❌ خطا در اتصال به سرور.";
-        btn.disabled = false;
-        if(document.body.contains(script)) document.body.removeChild(script);
-    };
-
-    document.body.appendChild(script);
-}
+            document.body.appendChild(script);
+        }
 
         document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
