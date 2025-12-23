@@ -99,20 +99,25 @@
         .auth-active { background-color: var(--success-color) !important; }
         .auth-expired { background-color: var(--danger-color) !important; }
 
+        /* استایل جدید لایسنس درشت */
         .machine-id-box {
-            font-family: monospace;
-            background: rgba(255,255,255,0.2);
-            padding: 5px;
-            border-radius: 4px;
-            font-size: 0.75em;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #fff;
+            padding: 12px 5px;
+            border-radius: 6px;
+            font-size: 1.4em !important;
             display: block;
-            margin: 8px 0;
+            margin: 10px 0;
             word-break: break-all;
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 2px solid var(--secondary-color);
+            letter-spacing: 2px;
+            font-weight: bold;
+            text-align: center;
         }
 
         .license-actions { display: flex; gap: 5px; }
-        .btn-action { flex: 1; padding: 6px; font-size: 0.75em; border-radius: 4px; color: white; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-action { flex: 1; padding: 10px; font-size: 0.8em; border-radius: 4px; color: white; border: none; cursor: pointer; transition: 0.2s; font-weight: bold; }
 
         nav button {
             width: 100%;
@@ -235,7 +240,6 @@
         }
         .btn-receipt:hover { opacity: 0.9; transform: translateY(-2px); }
 
-        /* استایل کارت بانکی طلایی */
         .bank-card {
             background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
             color: #444;
@@ -279,16 +283,18 @@
                 <div class="slogan-secondary">انتخابی بهتر برای نمای ساختمان</div>
                 
                 <div id="auth-container" class="auth-status">
-                    <div id="subscription-text" style="font-weight: bold;">🔄 سیستم آماده به کار</div>
+                    <div id="subscription-text" style="font-weight: bold; font-size: 1.1em;">🔄 سیستم آماده به کار</div>
                     <button onclick="manualRefresh()" id="refresh-btn" title="بروزرسانی وضعیت">
                         <span id="refresh-icon">↻</span> بروزرسانی وضعیت
                     </button>
-                    <div id="connection-status" style="font-size: 0.8em; opacity: 0.8; text-align: center;">در انتظار بررسی...</div>
-                    <div style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 10px;">
-                        <small>کد اختصاصی فعال‌سازی:</small>
+                    <div id="connection-status" style="font-size: 0.8em; opacity: 0.8; text-align: center; margin-bottom: 5px;">در انتظار بررسی...</div>
+                    
+                    <div style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 8px;">
+                        <small style="font-weight: bold; display: block; margin-bottom: 5px;">کد اختصاصی لایسنس (Machine ID):</small>
                         <code class="machine-id-box" id="display-machine-id">در حال محاسبه...</code>
+                        <small style="color: #ffeb3b; display: block; margin-bottom: 8px; font-size: 0.75em;">⚠️ به حروف کوچک و بزرگ دقت شود</small>
                         <div class="license-actions">
-                            <button class="btn-action" style="background: #4b5563; width: 100%;" onclick="copyID()">📋 کپی کد لایسنس</button>
+                            <button class="btn-action" style="background: #1e293b; width: 100%; border: 1px solid #4b5563;" onclick="copyID()">📋 کپی سریع کد</button>
                         </div>
                     </div>
                 </div>
@@ -306,16 +312,29 @@
             </nav>
 
             <div class="receipt-submission-box">
-                <small style="display:block; margin-bottom:5px; color:var(--primary-color); font-weight:bold;">✅ ثبت واریز و فعال‌سازی:</small>
-                <p style="font-size: 0.7em; color: #666; margin-bottom: 8px;">پس از واریز وجه، جهت تایید آنی روی دکمه زیر کلیک کنید.</p>
+                <small style="display:block; margin-bottom:8px; color:var(--primary-color); font-weight:bold; font-size: 0.9em;">✅ ثبت واریز و فعال‌سازی:</small>
                 
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSe2V9_r_fP_laQBXAgrNiNMKqlb6J6Tk4ZEf9yPWkLr9tkkzQ/viewform" 
-                   target="_blank" class="btn-receipt">
-                    📤 ارسال عکس فیش واریزی
-                </a>
+                <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                    <div style="background: white; padding: 6px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://docs.google.com/forms/d/e/1FAIpQLSe2V9_r_fP_laQBXAgrNiNMKqlb6J6Tk4ZEf9yPWkLr9tkkzQ/viewform" 
+                             alt="اسکن با موبایل" style="width: 120px; height: 120px; display: block;">
+                        <p style="font-size: 0.6em; color: #666; margin: 4px 0 0 0;">اسکن سریع با موبایل</p>
+                    </div>
+
+                    <div style="width: 100%; border-top: 1px solid #ddd; position: relative; margin: 2px 0;">
+                        <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #f8fafc; padding: 0 8px; font-size: 0.7em; color: #999;">یا</span>
+                    </div>
+
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSe2V9_r_fP_laQBXAgrNiNMKqlb6J6Tk4ZEf9yPWkLr9tkkzQ/viewform" 
+                       target="_blank" class="btn-receipt" style="width: 100%; margin-top: 0;">
+                        📤 آپلود فیش از این سیستم
+                    </a>
+                </div>
                 
-                <div style="margin-top: 10px; font-size: 0.65em; color: var(--danger-color);">
-                    * ابتدا کد لایسنس خود را کپی کنید.
+                <div style="margin-top: 12px; font-size: 0.65em; color: var(--danger-color); line-height: 1.5; text-align: right; background: #fff5f5; padding: 5px; border-radius: 4px;">
+                    ۱. کد لایسنس مشکی را بردارید.<br>
+                    ۲. فیش را ارسال کنید.<br>
+                    ۳. "بروزرسانی وضعیت" را بزنید.
                 </div>
             </div>
             
