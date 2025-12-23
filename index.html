@@ -249,38 +249,56 @@
         .btn-receipt:hover { opacity: 0.9; transform: translateY(-2px); }
 
         .bank-card {
-            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            color: #444;
-            border: none;
-            position: relative;
-            overflow: hidden;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            direction: ltr;
-            margin: 20px auto;
-            max-width: 400px;
-            min-height: 200px;
-            text-align: left;
-        }
-        .bank-card::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-            transform: skewX(-25deg);
-            animation: shine 5s infinite;
-        }
-        @keyframes shine {
-            0% { left: -100%; }
-            20% { left: 150%; }
-            100% { left: 150%; }
-        }
-    </style>
+    background: #ffcc00 !important; /* زرد اختصاصی بلو */
+    color: #000 !important;
+    border-radius: 18px;
+    padding: 25px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    direction: ltr;
+    min-height: 210px;
+    border: none !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* نوار مشکی پشت کارت */
+.bank-card::before {
+    content: "";
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 100%;
+    height: 45px;
+    background: #1a1a1a;
+    z-index: 1;
+}
+
+.card-number {
+    font-family: 'Courier New', monospace;
+    font-size: 1.7em !important;
+    font-weight: 900 !important;
+    display: block;
+    text-align: center;
+    margin-top: 65px; /* تنظیم فاصله از نوار مشکی */
+    position: relative;
+    z-index: 2;
+    letter-spacing: 1px;
+    white-space: nowrap; /* شماره در یک خط */
+}
+
+.card-holder {
+    position: relative;
+    z-index: 2;
+    font-weight: bold;
+}
+
+</style>
 </head>
 <body>
-
+<div class="receipt-submission-box">
     <div class="container">
         <div class="sidebar">
             <img src="iconvk.png" alt="Logo" class="sidebar-banner">
@@ -351,6 +369,16 @@
             </div>
             
             <button id="clear-all-data-btn" class="btn-danger" style="width: 100%; margin-top: 15px; padding: 8px; font-size: 0.8em; border-radius: 6px;" onclick="if(confirm('آیا از حذف تمام مدل‌ها و بازنشانی برنامه مطمئن هستید؟')){localStorage.clear(); location.reload();}">⚠️ حذف داده‌های برنامه</button>
+            <div style="margin-top: 20px; padding: 12px; border: 2px dashed #2563eb; border-radius: 10px; background: #f0f7ff; text-align: center;">
+    <p style="font-size: 0.85em; font-weight: bold; color: #1e40af; margin-bottom: 10px;">
+        📸 ارسال اسکرین‌شات فیش الزامی است
+    </p>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSe2V9_r_fP_laQBXAgrNiNMKqlb6J6Tk4ZEf9yPWkLr9tkkzQ/viewform" 
+       target="_blank" 
+       style="display: block; background: #16a34a; color: white; padding: 10px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+        📤 ثبت نهایی و ارسال فیش
+    </a>
+</div>
         </div>
 
         <div class="main-content">
@@ -358,28 +386,23 @@
             <div id="pricing" class="view">
                 <h2 style="text-align: center;">💎 ارتقای اشتراک حرفه‌ای</h2>
                 
-                <div class="bank-card">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div style="font-size: 0.9em; font-weight: bold; color: #5d4418; font-family: Arial;">blu Card | Gold</div>
-                        <div style="font-weight: bold; color: #5d4418; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 5px;">blubank</div>
-                    </div>
-                    
-                    <div class="card-number" style="color: #111; font-weight: bold; font-size: 1.6em; margin: 35px 0; text-align: center; font-family: 'Courier New', monospace; letter-spacing: 2px; text-shadow: 1px 1px 1px rgba(255,255,255,0.6);">
-                        ۶۲۱۹ - ۸۶۱۹ - ۷۹۹۸ - ۳۵۳۲
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div class="card-holder">
-                            <div style="font-size: 0.65em; color: #5d4418; text-transform: uppercase; margin-bottom: 2px;">Card Holder</div>
-                            <div style="font-size: 1.1em; color: #000; font-weight: bold; font-family: 'Segoe UI', Arial; line-height: 1.2;">MEHDI MOUSAALI</div>
-                            <div style="font-size: 1em; color: #222; font-family: 'Tahoma', sans-serif; margin-top: 2px; direction: rtl;">مهدی موسی علی</div>
-                        </div>
-                        <div style="text-align: right; opacity: 0.8;">
-                             <div style="font-size: 0.7em; color: #5d4418;">blubank.com</div>
-                        </div>
-                    </div>
-                </div>
+<div class="bank-card">
+    <div style="z-index:2; position:relative; font-weight:bold; display:flex; justify-content:space-between;">
+        <span>blubank</span>
+        <span style="font-size:0.8em;">VISA</span>
+    </div>
 
+    <div class="card-number">۶۲۱۹۸۶۱۹۷۹۹۸۳۵۳۲</div>
+
+    <div class="card-holder">
+        <div style="font-size:1.1em; text-transform:uppercase;">MEHDI MOUSAALI</div>
+        <div style="font-size:1em; font-family:Tahoma; direction:rtl;">مهدی موسی علی</div>
+    </div>
+</div>
+
+<div style="text-align: center; margin: 20px auto; max-width: 500px; padding: 15px; background: #fff5f5; border: 2px solid #dc2626; border-radius: 10px; color: #dc2626; font-weight: bold; line-height: 1.6;">
+    ⚠️ بسیار مهم: فعال‌سازی لایسنس منوط به ارسال "اسکرین‌شات فیش" و "شماره فیش واریزی" در فرم ثبت‌نام می‌باشد. بدون این دو مورد، درخواست شما رد خواهد شد.
+</div>
                 <div class="pricing-container">
                     <div class="price-card">
                         <h3>اشتراک نقره‌ای</h3>
@@ -739,4 +762,3 @@
     </script>
 </body>
 </html>
-
